@@ -11,7 +11,7 @@ git clone <address> webapps
 4) cd webapps
 5) Run the following command to add the webapps directory to mochitest:
 
-patch -d .. < parentMakefile.patch
+patch -p0 < dom/tests/mochitests/ff_central.patch
 
 6) Finally, from the top of mozilla-central, build Firefox.
 
