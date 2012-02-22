@@ -1,0 +1,23 @@
+This repo represents a WIP graft onto the Firefox mochitest tree of mozilla-central.
+
+To deploy:
+
+1) Clone mozilla-central
+2) cd mozilla-central/dom/tests/mochitest
+3) Clone this git as:
+
+git clone <address> webapps
+
+4) cd webapps
+5) Run the following command to add the webapps directory to mochitest:
+
+patch -d .. < parentMakefile.patch
+
+6) Finally, from the top of mozilla-central, build Firefox.
+
+If you've already built Firefox and just want to graft this in,
+
+Perform steps 1-5 as above
+6) From the top of mozilla-central, cd <OBJ-DIR>/dom/tests
+7) make
+
