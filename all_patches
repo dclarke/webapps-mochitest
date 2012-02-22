@@ -1,0 +1,173 @@
+diff --git a/browser/installer/package-manifest.in b/browser/installer/package-manifest.in
+--- a/browser/installer/package-manifest.in
++++ b/browser/installer/package-manifest.in
+@@ -138,16 +138,17 @@
+ @BINPATH@/components/content_htmldoc.xpt
+ @BINPATH@/components/content_html.xpt
+ @BINPATH@/components/content_xslt.xpt
+ @BINPATH@/components/content_xtf.xpt
+ @BINPATH@/components/cookie.xpt
+ @BINPATH@/components/directory.xpt
+ @BINPATH@/components/docshell.xpt
+ @BINPATH@/components/dom.xpt
++@BINPATH@/components/dom_apps.xpt
+ @BINPATH@/components/dom_base.xpt
+ #ifdef MOZ_B2G_RIL
+ @BINPATH@/components/dom_telephony.xpt
+ @BINPATH@/components/dom_wifi.xpt
+ @BINPATH@/components/dom_system_b2g.xpt
+ #endif
+ @BINPATH@/components/dom_battery.xpt
+ #ifdef MOZ_B2G_BT
+@@ -396,16 +397,18 @@
+ @BINPATH@/components/nsPrompter.manifest
+ @BINPATH@/components/nsPrompter.js
+ #ifdef MOZ_SERVICES_SYNC
+ @BINPATH@/components/SyncComponents.manifest
+ @BINPATH@/components/Weave.js
+ #endif
+ @BINPATH@/components/TelemetryPing.js
+ @BINPATH@/components/TelemetryPing.manifest
++@BINPATH@/components/Webapps.js
++@BINPATH@/components/Webapps.manifest
+ @BINPATH@/components/messageWakeupService.js
+ @BINPATH@/components/messageWakeupService.manifest
+ 
+ ; Modules
+ @BINPATH@/modules/*
+ 
+ ; Safe Browsing
+ @BINPATH@/components/nsSafebrowsingApplication.manifest
+diff --git a/browser/installer/removed-files.in b/browser/installer/removed-files.in
+--- a/browser/installer/removed-files.in
++++ b/browser/installer/removed-files.in
+@@ -927,18 +927,18 @@ xpicleanup@BIN_SUFFIX@
+   components/nsTelephonyWorker.js
+   components/Telephony.manifest
+   components/Telephony.js
+   components/nsWifiWorker.js
+   components/nsWifiWorker.manifest
+ #endif
+   components/txEXSLTRegExFunctions.js
+   components/Weave.js
+-  components/Webapps.js
+-  components/Webapps.manifest
++#  components/Webapps.js
++#  components/Webapps.manifest
+   components/WebContentConverter.js
+   defaults/autoconfig/platform.js
+   defaults/autoconfig/prefcalls.js
+   defaults/pref/firefox-branding.js
+   defaults/pref/firefox.js
+   defaults/pref/firefox-l10n.js
+   defaults/pref/services-sync.js
+   defaults/profile/bookmarks.html
+@@ -1054,17 +1054,17 @@ xpicleanup@BIN_SUFFIX@
+   modules/services-sync/type_records/passwords.js
+   modules/services-sync/type_records/prefs.js
+   modules/services-sync/type_records/tabs.js
+   modules/services-sync/util.js
+   modules/stylePanel.jsm
+   modules/tabview/AllTabs.jsm
+   modules/tabview/groups.jsm
+   modules/tabview/utils.jsm
+-  modules/Webapps.jsm
++#  modules/Webapps.jsm
+   modules/WindowDraggingUtils.jsm
+   #ifdef XP_WIN
+     modules/WindowsJumpLists.jsm
+     modules/WindowsPreviewPerTab.jsm
+   #endif
+   modules/XPCOMUtils.jsm
+   modules/XPIProvider.jsm
+   res/contenteditable.css
+@@ -1145,17 +1145,17 @@ xpicleanup@BIN_SUFFIX@
+   components/content_xslt.xpt
+   components/content_xtf.xpt
+   components/contentprefs.xpt
+   components/cookie.xpt
+   components/crashreporter.xpt
+   components/directory.xpt
+   components/docshell.xpt
+   components/dom.xpt
+-  components/dom_apps.xpt
++#  components/dom_apps.xpt
+   components/dom_base.xpt
+ #ifdef MOZ_B2G_RIL
+   components/dom_telephony.xpt
+   components/dom_wifi.xpt
+   components/dom_system_b2g.xpt
+ #endif
+   components/dom_canvas.xpt
+   components/dom_core.xpt
+diff --git a/dom/Makefile.in b/dom/Makefile.in
+--- a/dom/Makefile.in
++++ b/dom/Makefile.in
+@@ -61,16 +61,17 @@ DIRS = \
+   interfaces/xul \
+   interfaces/storage \
+   interfaces/json \
+   interfaces/offline \
+   interfaces/geolocation \
+   interfaces/notification \
+   interfaces/svg \
+   interfaces/smil \
++  interfaces/apps \
+   $(NULL)
+ 
+ ifeq (gonk,$(MOZ_WIDGET_TOOLKIT))
+ DIRS += \
+   interfaces/apps \
+   $(NULL)
+ endif
+ 
+diff --git a/dom/base/Makefile.in b/dom/base/Makefile.in
+--- a/dom/base/Makefile.in
++++ b/dom/base/Makefile.in
+@@ -50,25 +50,23 @@ FORCE_STATIC_LIB = 1
+ EXTRA_PP_COMPONENTS = \
+ 		ConsoleAPI.js \
+ 		ConsoleAPI.manifest \
+ 		$(NULL)
+ 
+ EXTRA_JS_MODULES = ConsoleAPIStorage.jsm \
+ 		$(NULL)
+ 
+-ifeq (gonk,$(MOZ_WIDGET_TOOLKIT))
+ EXTRA_COMPONENTS = \
+ 	        Webapps.js \
+ 	        Webapps.manifest \
+ 		$(NULL)
+ 
+ EXTRA_JS_MODULES += Webapps.jsm \
+ 		$(NULL)
+-endif
+ 
+ XPIDLSRCS = \
+   nsIDOMDOMError.idl \
+   nsIEntropyCollector.idl \
+   nsIScriptChannel.idl \
+   $(NULL)
+ 
+ EXPORTS = \
+diff --git a/dom/tests/mochitest/Makefile.in b/dom/tests/mochitest/Makefile.in
+--- a/dom/tests/mochitest/Makefile.in
++++ b/dom/tests/mochitest/Makefile.in
+@@ -47,16 +47,17 @@ DIRS	+= \
+ 	dom-level1-core \
+ 	dom-level2-core \
+ 	dom-level2-html \
+ 	ajax \
+ 	bugs \
+ 	chrome \
+ 	general \
+ 	whatwg \
++	webapps \
+ 	geolocation \
+ 	globalstorage \
+ 	localstorage \
+ 	orientation \
+ 	sessionstorage \
+ 	storageevent \
+ 	$(NULL)
+ 
