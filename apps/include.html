@@ -1,11 +1,12 @@
 <html>
   <body>
     This page contains javascript that can be included in an iframe and
-    upon recieving commands over jschannel will serve up gunk from local storage.
+    upon recieving commands over jschannel will attempt to invoke privileged
+    repository management APIs.
   </body>
-  <script src="/servers.js"></script>
+  <script src="../apphelper.js"></script>
   <!-- jschannel, that's how our parent will control us -->
-  <script src="/jschannel.js"></script>
+  <script src="../jschannel.js"></script>
   <!-- finally, define our handlers that'll be invoked over jschannel by the parent -->
   <script>
 
@@ -21,8 +22,11 @@
       scope: "test"
     });
 
-    chan.bind("getLastImage", function(trans) {
-      return window.localStorage.getItem("lastImage");
+    chan.bind("getSelf", function(trans) {
+      trans.delayReturn(true);
+      var pending = navigator.mozApps.getSelf();
+      pending.onsuccess = function () {trans.complete(this.result);};
+      pending.onerror = function () {trans.error(this.error);};
     });
   }
   </script>

@@ -1,5 +1,0 @@
-﻿{
- "name": "TheBOM",
- "description": "This App is THE BOM, yo.",
- "installs_allowed_from": ["*"]
-}
