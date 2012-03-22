@@ -55,6 +55,7 @@ _TEST_FILES	= \
     test_list_api.xul \
     test_install_noargs.xul \
     jschannel.js \
+    urlmatch.js \
 		$(NULL)
 
 libs:: 	$(_TEST_FILES)

@@ -10,6 +10,7 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=
   <script type="application/javascript" src="chrome://mochikit/content/tests/SimpleTest/SimpleTest.js"/>
   <script type="application/javascript" src="chrome://mochikit/content/tests/SimpleTest/EventUtils.js"/>
   <script type="application/javascript" src="apphelper.js"/>
+  <script type="application/javascript" src="urlmatch.js"/>
   <!-- test results are displayed in the html:body -->
   <body xmlns="http://www.w3.org/1999/xhtml">
   <a href="https://bugzilla.mozilla.org/show_bug.cgi?id="
@@ -22,88 +23,47 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=
 
 var next;
 SimpleTest.waitForExplicitFinish();
+setUp();
 
-function step1() {
-  ok(true, "in function 1");
-  mozAppscb(navigator.mozApps.mgmt.getAll(), { status: "== \"success\""}, step2);
+function setUp() { 
+  info("calling uninstallAll");
+  uninstallAll(test1);
 }
 
-step1();
-
-function step2() {
-  ok(true, "in function 2");
-  var request = navigator.mozApps.getInstalled();
-
-  request.onerror = function(e) {
-    ok(false, "Error calling getInstalled : " + request.error.name);
-  }
-  request.onsuccess = function(app) {
-    ok(request.result.length == 0, "Success number of apps : " + request.result.length);
-    step3();
-  }
+function test1()  {
+  mozAppscb(navigator.mozApps.mgmt.getAll(), { status: "== \"success\""}, test2);
 }
 
+function test2() {
+  info("in test 2");
+   mozAppscb(navigator.mozApps.getInstalled(), { status: "== \"success\""}, test3);
+}
 
-function step3()  {
-  ok(true, "in function 3");
-  popupNotifications.panel.addEventListener("popupshown", function() { 
-        triggerMainCommand(this);
-         }, false );
+function test3()  {
+  info("in test 3");
   var appURL = SERVERS['super_crazy'];
-
-  var result = mozAppscb(navigator.mozApps.install(
-     appURL, null),
-     {status: "== \"success\"", 
-     installOrigin: "== " + "chrome://mochitests".quote(),
-     origin: "== " + "http://www.example.com".quote(),
-     manifestURL: "== " +  appURL.quote(), 
-      // \> Date.now() - 3000"
-     manifest: {
-           name: "== \"Super Crazy Basic App\"",
-           installs_allowed_from: ["== " + "*".quote()]
-     }}, test4);
+  install(appURL, test4);
 }
-
 
 function test4() {
-  var request = navigator.mozApps.getInstalled();
-  request.onerror = function(e) {
-    alert("Error calling getInstalled : " + request.error.name);
-  }
-  request.onsuccess = function(app) {
-    ok(request.result.length == 1, "Request 1 number of apps : " + request.result.length);
-    test5();
-  }
+  info("in test4");
+  var appURL = SERVERS['super_crazy'];
+  getInstalled(appURL, test5);
 }
 
 function test5() {
-  popupNotifications.panel.addEventListener("popupshown", function() {
-        triggerMainCommand(this);
-         }, false );
-  var appURL = SERVERS['wild_crazy'];
-
-  var result = mozAppscb(navigator.mozApps.install(
-     appURL, null),
-     {status: "== \"success\"",
-     installOrigin: "== " + "chrome://mochitests".quote(),
-     origin: "== " + "http://www.example.com".quote(),
-     manifestURL: "== " +  appURL.quote(),
-      // \> Date.now() - 3000"
-     manifest: {
-           name: "== \"Super Crazy Basic App\"",
-           installs_allowed_from: ["== " + "*".quote()]
-     }}, test6);
+  info("test 5");
+  mozAppscb(navigator.mozApps.getSelf(), { status: "== \"success\""}, test7);
 }
 
-function test6() {
-  var request = navigator.mozApps.getInstalled();
-  request.onerror = function(e) {
-    alert("Error calling getInstalled : " + request.error.name);
-  }
-  request.onsuccess = function(app) {
-    ok(request.result.length == 1, "Request 1 number of apps : " + request.result.length);
-    SimpleTest.finish();
-  }
+
+function test7() {
+  var appURL = SERVERS['wild_crazy'];
+  install(appURL,getInstalled(appURL, tearDown));
+}
+
+function tearDown() {
+  uninstallAll(function() {SimpleTest.finish();});
 }
 ]]>
 

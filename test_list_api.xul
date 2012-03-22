@@ -30,10 +30,10 @@ var expectedMethods = ['navigator.mozApps.QueryInterface',
                        'navigator.mozApps.mgmt.removeEventListener'];
 var actualMethods = [];
 
-//actualMethods = actualMethods.concat(iterateMethods("navigator.mozApps.", navigator.mozApps, ['setApplicationChooser', 'setRepoOrigin', 'setMockResponse']));
-//actualMethods = actualMethods.concat(iterateMethods("navigator.mozApps.mgmt.", navigator.mozApps.mgmt));
-//actualMethods = actualMethods.sort();
-//ok(JSON.stringify(actualMethods) == JSON.stringify(expectedMethods), actualMethods);
+actualMethods = actualMethods.concat(iterateMethods("navigator.mozApps.", navigator.mozApps, ['setApplicationChooser', 'setRepoOrigin', 'setMockResponse']));
+actualMethods = actualMethods.concat(iterateMethods("navigator.mozApps.mgmt.", navigator.mozApps.mgmt));
+actualMethods = actualMethods.sort();
+ok(JSON.stringify(actualMethods) == JSON.stringify(expectedMethods), actualMethods);
 
 ]]>
 
