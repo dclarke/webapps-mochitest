@@ -23,46 +23,43 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=
 
 var next;
 SimpleTest.waitForExplicitFinish();
-setUp();
 
-function setUp() { 
+steps = [setUp, verify_no_apps, get_installed_returns_nothing, install_super_crazy, get_self_returns_nothing, install_wild_crazy, tearDown];
+
+//SimpleTest.waitForFocus(runAll(steps));
+
+runAll(steps);
+
+function setUp(next) { 
   info("calling uninstallAll");
-  uninstallAll(test1);
+  uninstallAll(next);
 }
 
-function test1()  {
-  mozAppscb(navigator.mozApps.mgmt.getAll(), { status: "== \"success\""}, test2);
+function verify_no_apps(next)  {
+  mozAppscb(navigator.mozApps.mgmt.getAll(), { status: "== \"success\""}, next);
 }
 
-function test2() {
-  info("in test 2");
-   mozAppscb(navigator.mozApps.getInstalled(), { status: "== \"success\""}, test3);
+function get_installed_returns_nothing(next) {
+  info("in " + arguments.callee.name);
+   mozAppscb(navigator.mozApps.getInstalled(), { status: "== \"success\""}, next);
 }
 
-function test3()  {
-  info("in test 3");
+function install_super_crazy(next)  {
   var appURL = SERVERS['super_crazy'];
-  install(appURL, test4);
+  install(appURL,function() { getInstalled(appURL, next)});
 }
 
-function test4() {
-  info("in test4");
-  var appURL = SERVERS['super_crazy'];
-  getInstalled(appURL, test5);
+function get_self_returns_nothing(next) {
+  mozAppscb(navigator.mozApps.getSelf(), { status: "== \"success\""}, next);
 }
 
-function test5() {
-  info("test 5");
-  mozAppscb(navigator.mozApps.getSelf(), { status: "== \"success\""}, test7);
-}
-
-
-function test7() {
+function install_wild_crazy(next) {
   var appURL = SERVERS['wild_crazy'];
-  install(appURL,getInstalled(appURL, tearDown));
+  install(appURL, function() { getInstalled(appURL, next)});
 }
 
-function tearDown() {
+function tearDown(next) {
+  info("in " + arguments.callee.name);
   uninstallAll(function() {SimpleTest.finish();});
 }
 ]]>

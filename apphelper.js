@@ -16,19 +16,6 @@ var SERVERS = {"_primary":"http://127.0.0.1:8088",
                "mozillaball":"http://test:80/tests/dom/tests/mochitest/webapps/servers/mozillaball"
  };
 
-function getAll() {
-  var request = navigator.mozApps.mgmt.getAll();
-  request.onsuccess = function() {
-    var apps = request.result;
-    document.body.innerHTML += "<p>" + apps.length + " apps</p>";
-    for (var i = 0; i < apps.length; i++)
-      document.body.innerHTML += "<p>enumerate app: " + JSON.stringify(apps[i].origin) + "</p>";
-  } 
-  request.onerror = function() { 
-    alert("Error calling getAll : " + request.error.name);
-  }
-}
-
 function uninstallAll(next) {
    var pendingGetAll = navigator.mozApps.mgmt.getAll();
    pendingGetAll.onsuccess = function() {
@@ -117,7 +104,6 @@ function mozAppscb(pending, comparatorObj, next) {
   pending.onsuccess = function () {
     done = true;
     ok(true, "success cb, called");
-    info("what is the result " + pending.result);
     if(pending.result) {
       if(pending.result.length) {
         info("length = " + pending.result.length);
@@ -163,43 +149,8 @@ function getPopupNotifications(aWindow) {
 }
 
 
-/*
- * getPopup
- *
- */
-function getPopup(aPopupNote, aKind) {
-    ok(true, "Looking for " + aKind + " popup notification");
-    return aPopupNote.getNotification(aKind);
-}
-
-function dumpNotifications() {
-  try {
-    // PopupNotifications
-    var container = getPopupNotifications(window.top);
-    ok(true, "is popup panel open? " + container.isPanelOpen);
-    var notes = container._currentNotifications;
-    ok(true, "Found " + notes.length + " popup notifications.");
-    for (var i = 0; i < notes.length; i++) {
-        ok(true, "#" + i + ": " + notes[i].id);
-    }
-    var Ci = Components.interfaces;
-    // Notification bars
-    var chromeWin = window.top.QueryInterface(Ci.nsIInterfaceRequestor)
-                           .getInterface(Ci.nsIWebNavigation)
-                           .QueryInterface(Ci.nsIDocShell)
-                           .chromeEventHandler.ownerDocument.defaultView;
-    var nb = chromeWin.getNotificationBox(window.top);
-    var notes = nb.allNotifications;
-    ok(true, "Found " + notes.length + " notification bars.");
-    for (var i = 0; i < notes.length; i++) {
-        ok(true, "#" + i + ": " + notes[i].getAttribute("value"));
-    }
-  } catch(e) { todo(false, "WOAH! " + e); }
-}
-
 function triggerMainCommand(popup) {
 
-  info("triggering main command");
   let notifications = popup.childNodes;
   ok(notifications.length > 0, "at least one notification displayed");
   let notification = notifications[0];
@@ -216,25 +167,23 @@ function clickPopup() {
   }, false );
 
 }
-function runAll() {
+function runAll(steps) {
   var index = 0;
-  SimpleTest.waitForExplicitFinish();
   function callNext() {
-    index++;
-    if (index >= arguments.length) {
-      SimpleTest.finish();
+    if (index >= steps.length) {
       return;
     }
-    var func = arguments[index];
+    var func = steps[index];
+    index++;
     func(callNext);
   }
+  callNext();
 }
 
 function install(appURL,next) {
   var origin = URLParse(appURL).normalize().originOnly().toString();
   clickPopup(); 
   var url = appURL.substring(appURL.indexOf('/apps/'));
-  info(url);
   var manifest = JSON.parse(readFile(url));
 
   for (var i = 0 ; i <  manifest.installs_allowed_from.length; i++)
@@ -258,14 +207,13 @@ function install(appURL,next) {
 
 function getInstalled(appURL, next) {
 
-    var origin = URLParse(appURL).normalize().originOnly().toString();
+  var origin = URLParse(appURL).normalize().originOnly().toString();
   var url = appURL.substring(appURL.indexOf('/apps/'));
   var manifest = JSON.parse(readFile(url));
   var receipts = manifest.receipts;
 
   for (var i = 0 ; i <  manifest.installs_allowed_from.length; i++)
     manifest.installs_allowed_from[i] = "== " + manifest.installs_allowed_from[i].quote();
-  info(manifest.installs_allowed_from);
 
   for (v in manifest.receipts)
     manifest.receipts[v] = "== " + manifest.receipts[v].quote();
@@ -303,6 +251,7 @@ function getFile(file) {
   fileStream.close();
 
 }
+
 function fetchManifest(url, cb) {
   // contact our server to retrieve the URL
   url = "/content/chrome/dom/tests/mochitest/webapps" +
@@ -351,16 +300,12 @@ function readFile(aFile) {
   for(var i = 0; i < split.length; ++i) {
     file.append(split[i]);
   }
-  info(file);
   fis.init(file, MODE_RDONLY, PERMS_FILE, 0);
-  info("readFile 2");
   var sis = Components.classes["@mozilla.org/scriptableinputstream;1"].
             createInstance(Components.interfaces.nsIScriptableInputStream);
   sis.init(fis);
-  info("before sis.avail");
   var text = sis.read(sis.available());
   sis.close();
-  info(text);
   return text;
 }
 
