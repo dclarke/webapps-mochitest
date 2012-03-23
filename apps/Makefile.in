@@ -57,6 +57,8 @@ _TEST_FILES	= \
     no_delegated_install.webapp \
     no_delegated_install.webapp^headers^ \
     bad_content_type.webapp \
+    manifest_with_bom.webapp \
+    manifest_with_bom.webapp^headers^ \
 		$(NULL)
 
 libs:: 	$(_TEST_FILES)

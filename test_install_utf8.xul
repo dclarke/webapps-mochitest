@@ -23,8 +23,7 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=
 
 SimpleTest.waitForExplicitFinish();
 
-steps = [setUp, verify_no_apps, get_installed_returns_nothing, install_super_crazy, get_self_returns_nothing, 
-         install_wild_crazy, uninstall_wild_crazy, tearDown];
+steps = [setUp, verify_no_apps, get_installed_returns_nothing, install_bom, tearDown];
 
 runAll(steps);
 
@@ -47,9 +46,9 @@ function get_installed_returns_nothing(next) {
             next);
 }
 
-function install_super_crazy(next)  {
+function install_bom(next)  {
   info("in " + arguments.callee.name);
-  var appURL = SERVERS['super_crazy'];
+  var appURL = SERVERS['manifest_with_bom'];
   install(appURL,function() { getInstalled(appURL, next)});
 }
 
@@ -59,17 +58,6 @@ function get_self_returns_nothing(next) {
             next);
 }
 
-function install_wild_crazy(next) {
-  var appURL = SERVERS['wild_crazy'];
-  install(appURL, function() { getInstalled(appURL, next)});
-}
-
-function uninstall_wild_crazy(next)  {
-  var appURL = SERVERS['wild_crazy'];
-  uninstall(appURL, function() { mozAppscb(navigator.mozApps.getInstalled(),
-           { status: "== \"success\""},
-           next)});
-}
 
 function tearDown() {
   info("in " + arguments.callee.name);

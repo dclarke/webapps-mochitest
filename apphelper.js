@@ -1,5 +1,5 @@
 const MODE_RDONLY   = 0x01;
-const PERMS_FILE      = 0644;
+const PERMS_FILE = 0644;
 
 var popups = 0;
 var popupNotifications = getPopupNotifications(window.top);
@@ -10,7 +10,7 @@ var SERVERS = {"_primary":"http://127.0.0.1:8088",
                "app_with_simple_service":"http://127.0.0.1:8888/tests/dom/tests/mochitest/webapps/servers/app_with_simple_service",
                "bad_content_type":"http://test2.example.org:80/chrome/dom/tests/mochitest/webapps/apps/bad_content_type.webapp",
                "json_syntax_error":"http://sub1.test1.example.org:80/chrome/dom/tests/mochitest/webapps/apps/json_syntax_error.webapp",
-               "manifest_with_bom":"http://sub1.test2.example.org:80/tests/dom/tests/mochitest/webapps/servers/manifest_with_bom",
+               "manifest_with_bom":"http://sub1.test2.example.org:80/chrome/dom/tests/mochitest/webapps/apps/manifest_with_bom.webapp",
                "missing_required_field":"http://sub2.test1.example.org:80/chrome/dom/tests/mochitest/webapps/apps/missing_required_field.webapp",
                "no_delegated_install":"http://sub2.test2.example.org:80/chrome/dom/tests/mochitest/webapps/apps/no_delegated_install.webapp",
                "no_mgmt_api_off_repo_origin":"http://test1.example.org:8000/tests/dom/tests/mochitest/webapps/servers/no_mgmt_api_off_repo_origin",
@@ -42,6 +42,38 @@ function uninstallAll(next) {
    }
 }
 
+function uninstall(appURL, next) {
+  var pending = navigator.mozApps.getInstalled(); 
+  pending.onsuccess = function () {
+    var m = this.result;
+    var finished = false;
+    var found = false;
+
+    for (var i=0; i < m.length; i++) {
+      var app = m[i];
+      if (app.manifestURL == appURL) {
+        found = true;
+        var pendingUninstall = app.uninstall();
+        pendingUninstall.onsuccess = function(r) {
+          finished = true;
+          ok(true, "app has been uninstalled");
+          next();
+        };
+        pendingUninstall.onerror = function () {
+          writeln('Error:', this.error);
+          finished = true;
+          throw('Failed');
+        };
+      }
+      
+    }
+         
+ 
+ }
+ pending.onerror = function ()  {
+   ok(false, "Unexpected on error called in uninstall " );
+ }
+}
 function iterateMethods(label, root, suppress) {
   var arr = [];
   for (var f in root) {
@@ -183,12 +215,11 @@ function install(appURL,next) {
   clickPopup(); 
   var url = appURL.substring(appURL.indexOf('/apps/'));
   var manifest = JSON.parse(readFile(url));
-
   for (var i = 0 ; i <  manifest.installs_allowed_from.length; i++)
     manifest.installs_allowed_from[i] = "== " + manifest.installs_allowed_from[i].quote();
 
   info(manifest.installs_allowed_from);
-
+  
   mozAppscb(navigator.mozApps.install(
       appURL, null),
       {
@@ -276,7 +307,7 @@ function readFile(aFile) {
             createInstance(Components.interfaces.nsIFileInputStream);
 
   
-  var paths = "tests/dom/tests/mochitest/webapps/" + aFile;
+  var paths = "chrome/dom/tests/mochitest/webapps" + aFile;
   var split = paths.split("/");
   for(var i = 0; i < split.length; ++i) {
     file.append(split[i]);
@@ -287,6 +318,7 @@ function readFile(aFile) {
   sis.init(fis);
   var text = sis.read(sis.available());
   sis.close();
+  info (text);
   return text;
 }
 
