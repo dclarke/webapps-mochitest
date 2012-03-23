@@ -1,6 +1,9 @@
 const MODE_RDONLY   = 0x01;
 const PERMS_FILE      = 0644;
 
+var popups = 0;
+var popupNotifications = getPopupNotifications(window.top);
+
 var SERVERS = {"_primary":"http://127.0.0.1:8088",
                "super_crazy":"http://www.example.com:80/chrome/dom/tests/mochitest/webapps/apps/super_crazy.webapp",
                "wild_crazy":"http://www.example.com:80/chrome/dom/tests/mochitest/webapps/apps/wild_crazy.webapp",
@@ -134,9 +137,6 @@ function mozAppscb(pending, comparatorObj, next) {
   };
 }
 
-var popups = 0;
-var popupNotifications = getPopupNotifications(window.top);
-
 function getPopupNotifications(aWindow) {
     var Ci = Components.interfaces;
     var chromeWin = aWindow.QueryInterface(Ci.nsIInterfaceRequestor)
@@ -150,7 +150,6 @@ function getPopupNotifications(aWindow) {
 
 
 function triggerMainCommand(popup) {
-
   let notifications = popup.childNodes;
   ok(notifications.length > 0, "at least one notification displayed");
   let notification = notifications[0];
@@ -158,7 +157,6 @@ function triggerMainCommand(popup) {
 
   // 20, 10 so that the inner button is hit
   notification.button.doCommand();
-
 }
 
 function clickPopup() {
@@ -234,23 +232,6 @@ function getInstalled(appURL, next) {
     next);
 }
 
-function getFile(file) {
-  
-  var contents = {} ; 
-
-  var fileStream = Components.classes['@mozilla.org/network/file-input-stream;1']
-                   .createInstance(Components.interfaces.nsIFileInputStream);
-  fileStream.init(file, 1, 0, false);
-  var binaryStream = Components.classes['@mozilla.org/binaryinputstream;1']
-                     .createInstance(Components.interfaces.nsIBinaryInputStream);
-  binaryStream.setInputStream(fileStream);
-
-  response.bodyOutputStream.writeFrom(binaryStream, binaryStream.available());
-
-  binaryStream.close();
-  fileStream.close();
-
-}
 
 function fetchManifest(url, cb) {
   // contact our server to retrieve the URL
