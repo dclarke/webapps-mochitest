@@ -18,13 +18,29 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=
 <script type="text/javascript"> 
 <![CDATA[
 
+SimpleTest.waitForExplicitFinish();
 
 try { 
   navigator.mozApps.install();
 } catch (e) {
- ok(e.message == "Not enough arguments \[mozIDOMApplicationRegistry.install\]", "install returned " + e.message);
+  ok(e.message == "Not enough arguments \[mozIDOMApplicationRegistry.install\]", "install returned " + e.message);
 }
 
+mozAppscb(navigator.mozApps.install(SERVERS['json_syntax_error'], null), 
+          { status: "== \"error\"",
+            name: "== \"MANIFEST_PARSE_ERROR\""});
+
+mozAppscb(navigator.mozApps.install(SERVERS['missing_required_field'], null),
+          { status: "== \"error\"",
+            name: "== \"INVALID_MANIFEST\""});
+
+mozAppscb(navigator.mozApps.install(SERVERS['no_delegated_install'], null),
+          { status: "== \"error\"",
+            name: "== \"PERMISSION_DENIED\""});
+
+mozAppscb(navigator.mozApps.install(SERVERS['bad_content_type'], null),
+          { status: "== \"error\"",
+            name: "== \"INVALID_MANIFEST\""});
 ]]>
 
 </script> 

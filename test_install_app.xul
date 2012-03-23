@@ -21,12 +21,11 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=
 <![CDATA[
 
 
-var next;
 SimpleTest.waitForExplicitFinish();
 
-steps = [setUp, verify_no_apps, get_installed_returns_nothing, install_super_crazy, get_self_returns_nothing, install_wild_crazy, tearDown];
-
-//SimpleTest.waitForFocus(runAll(steps));
+steps = [setUp, verify_no_apps, get_installed_returns_nothing, 
+         install_super_crazy, get_self_returns_nothing, 
+         install_wild_crazy, tearDown];
 
 runAll(steps);
 
@@ -36,12 +35,16 @@ function setUp(next) {
 }
 
 function verify_no_apps(next)  {
-  mozAppscb(navigator.mozApps.mgmt.getAll(), { status: "== \"success\""}, next);
+  mozAppscb(navigator.mozApps.mgmt.getAll(), 
+            { status: "== \"success\""}, 
+            next);
 }
 
 function get_installed_returns_nothing(next) {
   info("in " + arguments.callee.name);
-   mozAppscb(navigator.mozApps.getInstalled(), { status: "== \"success\""}, next);
+  mozAppscb(navigator.mozApps.getInstalled(), 
+            { status: "== \"success\""}, 
+            next);
 }
 
 function install_super_crazy(next)  {
@@ -50,7 +53,9 @@ function install_super_crazy(next)  {
 }
 
 function get_self_returns_nothing(next) {
-  mozAppscb(navigator.mozApps.getSelf(), { status: "== \"success\""}, next);
+  mozAppscb(navigator.mozApps.getSelf(), 
+            { status: "== \"success\""}, 
+            next);
 }
 
 function install_wild_crazy(next) {

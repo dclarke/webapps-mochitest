@@ -50,6 +50,13 @@ _TEST_FILES	= \
     wild_crazy.webapp^headers^ \
     super_crazy.webapp \
     super_crazy.webapp^headers^ \
+    missing_required_field.webapp \
+    missing_required_field.webapp^headers^ \
+    json_syntax_error.webapp \
+    json_syntax_error.webapp^headers^ \
+    no_delegated_install.webapp \
+    no_delegated_install.webapp^headers^ \
+    bad_content_type.webapp \
 		$(NULL)
 
 libs:: 	$(_TEST_FILES)

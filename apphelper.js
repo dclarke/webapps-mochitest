@@ -5,11 +5,11 @@ var SERVERS = {"_primary":"http://127.0.0.1:8088",
                "super_crazy":"http://www.example.com:80/chrome/dom/tests/mochitest/webapps/apps/super_crazy.webapp",
                "wild_crazy":"http://www.example.com:80/chrome/dom/tests/mochitest/webapps/apps/wild_crazy.webapp",
                "app_with_simple_service":"http://127.0.0.1:8888/tests/dom/tests/mochitest/webapps/servers/app_with_simple_service",
-               "bad_content_type":"http://test2.example.org:80/tests/dom/tests/mochitest/webapps/servers/bad_content_type",
-               "json_syntax_error":"http://sub1.test1.example.org:80/tests/dom/tests/mochitest/webapps/servers/json_syntax_error",
+               "bad_content_type":"http://test2.example.org:80/chrome/dom/tests/mochitest/webapps/apps/bad_content_type.webapp",
+               "json_syntax_error":"http://sub1.test1.example.org:80/chrome/dom/tests/mochitest/webapps/apps/json_syntax_error.webapp",
                "manifest_with_bom":"http://sub1.test2.example.org:80/tests/dom/tests/mochitest/webapps/servers/manifest_with_bom",
-               "missing_required_field":"http://sub2.test1.example.org:80/tests/dom/tests/mochitest/webapps/servers/missing_required_field",
-               "no_delegated_install":"http://sub2.test2.example.org:80/tests/dom/tests/mochitest/webapps/servers/no_delegated_install",
+               "missing_required_field":"http://sub2.test1.example.org:80/chrome/dom/tests/mochitest/webapps/apps/missing_required_field.webapp",
+               "no_delegated_install":"http://sub2.test2.example.org:80/chrome/dom/tests/mochitest/webapps/apps/no_delegated_install.webapp",
                "no_mgmt_api_off_repo_origin":"http://test1.example.org:8000/tests/dom/tests/mochitest/webapps/servers/no_mgmt_api_off_repo_origin",
                "demo":"http://test2.example.org:8000/tests/dom/tests/mochitest/webapps/servers/demo",
                "demopaid":"http://example.org:8000/tests/dom/tests/mochitest/webapps/servers/demopaid",
@@ -127,7 +127,7 @@ function mozAppscb(pending, comparatorObj, next) {
   pending.onerror = function () {
     done = true;
     pending.error.status = 'error';
-    ok(false, "failure cb called");
+    ok(true, "failure cb called");
     js_traverse(comparatorObj, pending.error);
     next();
     return pending;
