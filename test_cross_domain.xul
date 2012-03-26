@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/css" href="chrome://global/skin"?>
+<?xml-stylesheet type="text/css" href="chrome://mochikit/content/tests/SimpleTest/test.css"?>
+<!--
+https://bugzilla.mozilla.org/show_bug.cgi?id=
+-->
+<window title="Mozilla Bug "
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <script type="application/javascript" src="chrome://mochikit/content/chrome-harness.js"></script>
+  <script type="application/javascript" src="chrome://mochikit/content/tests/SimpleTest/SimpleTest.js"/>
+  <script type="application/javascript" src="chrome://mochikit/content/tests/SimpleTest/EventUtils.js"/>
+  <script type="application/javascript" src="apphelper.js"/>
+  <script type="application/javascript" src="jschannel.js"/>
+  <script type="application/javascript" src="jshelper.js"/> 
+  <script type="application/javascript" src="urlmatch.js"/>
+  <!-- test results are displayed in the html:body -->
+  <head></head>
+  <body xmlns="http://www.w3.org/1999/xhtml">
+  <a href="https://bugzilla.mozilla.org/show_bug.cgi?id="
+     target="_blank">Mozilla Bug </a>
+  </body>
+
+<script type="text/javascript"> 
+<![CDATA[
+
+
+SimpleTest.waitForExplicitFinish();
+
+steps = [setUp, verify_no_apps, get_installed_returns_nothing, install_super_crazy, get_self_returns_nothing, 
+         get_self_on_domain, tearDown];
+
+runAll(steps);
+
+function setUp(next) { 
+  info("calling uninstallAll");
+  uninstallAll(next);
+}
+
+function verify_no_apps(next)  {
+  info("in " + arguments.callee.name);
+  mozAppscb(navigator.mozApps.mgmt.getAll(), 
+            { status: "== \"success\""}, 
+            next);
+}
+
+function get_installed_returns_nothing(next) {
+  info("in " + arguments.callee.name);
+  mozAppscb(navigator.mozApps.getInstalled(), 
+            { status: "== \"success\""}, 
+            next);
+}
+
+function install_super_crazy(next)  {
+  info("in " + arguments.callee.name);
+  var appURL = SERVERS['super_crazy'];
+  install(appURL,function() { getInstalled(appURL, next)});
+}
+
+function get_self_returns_nothing(next) {
+  mozAppscb(navigator.mozApps.getSelf(), 
+            { status: "== \"success\""}, 
+            next);
+}
+
+function get_self_on_domain(next)  {
+  info("in " + arguments.callee.name);
+  var appURL = SERVERS['super_crazy'];
+  appURL = appURL.substring(0,appURL.indexOf("super_crazy.webapp"));
+  var chan = embedIFrameAndStartChannel(appURL + "include.html");
+  //mozAppscb(chan.call(buildJSChanArgs("getSelf", true)), 
+  //           { status: "== \"success\""}, 
+  //           next);
+//  chan.call(buildJSChanArgs("getSelf", 
+//             function(v) { info("WOW"); mozAppscb(v,{ status: "== \"success\""}, next)}));
+  chan.call({name: "getSelf", success: function() { console.log("HERE in success");}});
+
+}
+
+function tearDown() {
+  info("in " + arguments.callee.name);
+  uninstallAll(function() {SimpleTest.finish();});
+}
+]]>
+
+</script> 
+
+</window>
+

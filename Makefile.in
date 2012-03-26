@@ -54,8 +54,10 @@ _TEST_FILES	= \
     apphelper.js \
     test_list_api.xul \
     test_install_errors.xul \
+    test_cross_domain.xul \
     test_install_utf8.xul \
     jschannel.js \
+    jshelper.js \
     urlmatch.js \
 		$(NULL)
 

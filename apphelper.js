@@ -182,9 +182,9 @@ function getPopupNotifications(aWindow) {
 
 
 function triggerMainCommand(popup) {
-  let notifications = popup.childNodes;
+  var notifications = popup.childNodes;
   ok(notifications.length > 0, "at least one notification displayed");
-  let notification = notifications[0];
+  var notification = notifications[0];
   info("triggering command: " + notification.getAttribute("buttonlabel"));
 
   // 20, 10 so that the inner button is hit
@@ -347,4 +347,5 @@ Components.classes["@mozilla.org/permissionmanager;1"]
                Components.interfaces.nsIPermissionManager.ALLOW_ACTION);
 
 SpecialPowers.setCharPref("dom.mozApps.whitelist", "http://mochi.test:8888");
+SpecialPowers.setBoolPref('dom.mozBrowserFramesEnabled', true);
 

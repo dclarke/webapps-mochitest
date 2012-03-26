@@ -1,0 +1,24 @@
+<html> 
+  <head>
+  here in the head, load iframe please</head>
+   <iframe type="content" id="contentFrame" src="include.html" width="500" height="500"/>
+  <body> 
+  </body>
+    <script src="../jschannel.js"></script>
+  <script>
+    var iframe = document.createElement("iframe");
+    iframe.setAttribute('type', 'content');
+    info(url);
+    iframe.setAttribute('src', "include.html");
+    iframe.setAttribute('style', "width: 350px; height: 350px; display: block;");
+    iframe.height = window.innerHeight + 'px';
+    iframe.width = window.innerWidth + 'px';
+
+    var chan =  Channel.build({
+      window: iframe.contentWindow,
+      scope: "test",
+      origin: "*"
+     });
+   chan.call({name: "getSelf", success: function() { console.log("HERE in success");}});
+   document.body.appendChild(iframe);
+</html>
