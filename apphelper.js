@@ -6,6 +6,7 @@ var popupNotifications = getPopupNotifications(window.top);
 
 var SERVERS = {"_primary":"http://127.0.0.1:8088",
                "super_crazy":"http://www.example.com:80/chrome/dom/tests/mochitest/webapps/apps/super_crazy.webapp",
+               "super_crazy_chrome":"chrome://mochitests/content/chrome/dom/tests/mochitest/webapps/apps/super_crazy.webapp",
                "wild_crazy":"http://www.example.com:80/chrome/dom/tests/mochitest/webapps/apps/wild_crazy.webapp",
                "app_with_simple_service":"http://127.0.0.1:8888/tests/dom/tests/mochitest/webapps/servers/app_with_simple_service",
                "bad_content_type":"http://test2.example.org:80/chrome/dom/tests/mochitest/webapps/apps/bad_content_type.webapp",
@@ -57,7 +58,20 @@ function uninstall(appURL, next) {
         pendingUninstall.onsuccess = function(r) {
           finished = true;
           ok(true, "app has been uninstalled");
-          next();
+          try {
+            var secondUninstall = app.uninstall();
+            secondUninstall.onsuccess = function(r) {
+              next();
+            };
+            secondUninstall.onerror = function(r) {
+             info(secondUninstall.error.name);
+             info(secondUninstall.error.manifestURL);
+             next();
+            };
+          } catch(e) {
+              ok(e.message == "Not enough arguments \[mozIDOMApplicationRegistry.install\]", "install returned " + e.message);
+              next();
+          }
         };
         pendingUninstall.onerror = function () {
           writeln('Error:', this.error);

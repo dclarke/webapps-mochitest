@@ -431,7 +431,6 @@
                             debug("postMessageObserver() raised an exception: " + e.toString());
                         }
                     }
-
                     cfg.window.postMessage(JSON.stringify(msg), cfg.origin);
                 }
             }

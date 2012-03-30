@@ -64,22 +64,55 @@ function get_self_returns_nothing(next) {
 
 function get_self_on_domain(next)  {
   info("in " + arguments.callee.name);
-  var appURL = SERVERS['super_crazy'];
-  appURL = appURL.substring(0,appURL.indexOf("super_crazy.webapp"));
-  var chan = embedIFrameAndStartChannel(appURL + "include.html");
-  //mozAppscb(chan.call(buildJSChanArgs("getSelf", true)), 
-  //           { status: "== \"success\""}, 
-  //           next);
-//  chan.call(buildJSChanArgs("getSelf", 
-//             function(v) { info("WOW"); mozAppscb(v,{ status: "== \"success\""}, next)}));
-  chan.call({name: "getSelf", success: function() { console.log("HERE in success");}});
-
+    var chan =  Channel.build({
+      window: document.getElementById("iframeId").contentWindow,
+      scope: "test",
+      origin: "*",
+      debugOutput: true,
+      onReady: function() {alert("parent ready");
+/*         chan.call({method: "getSelf", success: function(result) {
+            mozAppscb(result,
+            { status: "== \"success\"",
+              installOrigin: "== " + "chrome://mochitests".quote(),
+              origin: "== " + "*".quote(),
+              manifestURL: "== " +  crazyURL.quote()
+            },
+            next);
+         }});
+*/
+      }
+     });
 }
 
 function tearDown() {
   info("in " + arguments.callee.name);
   uninstallAll(function() {SimpleTest.finish();});
 }
+
+
+var crazyURL = SERVERS['super_crazy'];
+crazyURL = crazyURL.substring(0,crazyURL.indexOf("super_crazy.webapp"));
+var iframe = document.createElement("iframe");
+iframe.setAttribute('type', 'content');
+iframe.setAttribute('src', crazyURL + "include.html");
+iframe.setAttribute('style', "width: 350px; height: 350px; display: block;");
+iframe.setAttribute('id', "iframeId");
+iframe.height = window.innerHeight + 'px';
+iframe.width = window.innerWidth + 'px';
+info(crazyURL + "include.html");
+document.documentElement.appendChild(iframe);
+
+
+
+function sendMessage(evt)
+{
+  var msg = "child-message";
+  console.log("event origin: " + evt.origin);
+  console.log("event data: " + evt.data);
+}
+
+window.addEventListener("message", sendMessage, false);
+
 ]]>
 
 </script> 

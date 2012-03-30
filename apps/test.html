@@ -1,24 +1,34 @@
 <html> 
   <head>
   here in the head, load iframe please</head>
-   <iframe type="content" id="contentFrame" src="include.html" width="500" height="500"/>
   <body> 
   </body>
-    <script src="../jschannel.js"></script>
+  <script src="jschannel.js"></script>
   <script>
     var iframe = document.createElement("iframe");
     iframe.setAttribute('type', 'content');
-    info(url);
     iframe.setAttribute('src', "include.html");
     iframe.setAttribute('style', "width: 350px; height: 350px; display: block;");
+    iframe.setAttribute('id', "iframeId");
     iframe.height = window.innerHeight + 'px';
     iframe.width = window.innerWidth + 'px';
-
+    document.body.appendChild(iframe);
     var chan =  Channel.build({
-      window: iframe.contentWindow,
+      window: document.getElementById("iframeId").contentWindow,
       scope: "test",
-      origin: "*"
+      origin: "*", 
+      debugOutput: true,
+      onReady: function() {alert("parent ready");
+         chan.call({method: "getSelf", success: function(result) {  
+            mozAppscb(result,
+            { status: "== \"success\"",
+              installOrigin: "== " + "chrome://mochitests".quote(),
+              origin: "== " + origin.quote(),
+              manifestURL: "== " +  appURL.quote()
+            },
+            next);
+         }});
+      }
      });
-   chan.call({name: "getSelf", success: function() { console.log("HERE in success");}});
-   document.body.appendChild(iframe);
+  </script>
 </html>
