@@ -3,7 +3,7 @@
   here in the head, load iframe please</head>
   <body> 
   </body>
-  <script src="jschannel.js"></script>
+  <script src="../jschannel.js"></script>
   <script>
     var iframe = document.createElement("iframe");
     iframe.setAttribute('type', 'content');
@@ -13,6 +13,7 @@
     iframe.height = window.innerHeight + 'px';
     iframe.width = window.innerWidth + 'px';
     document.body.appendChild(iframe);
+    window.parent.postMessage("message","*");
     var chan =  Channel.build({
       window: document.getElementById("iframeId").contentWindow,
       scope: "test",
@@ -23,7 +24,7 @@
             mozAppscb(result,
             { status: "== \"success\"",
               installOrigin: "== " + "chrome://mochitests".quote(),
-              origin: "== " + origin.quote(),
+              origin: "== " + "*".quote(),
               manifestURL: "== " +  appURL.quote()
             },
             next);

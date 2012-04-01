@@ -6,7 +6,6 @@ var popupNotifications = getPopupNotifications(window.top);
 
 var SERVERS = {"_primary":"http://127.0.0.1:8088",
                "super_crazy":"http://www.example.com:80/chrome/dom/tests/mochitest/webapps/apps/super_crazy.webapp",
-               "super_crazy_chrome":"chrome://mochitests/content/chrome/dom/tests/mochitest/webapps/apps/super_crazy.webapp",
                "wild_crazy":"http://www.example.com:80/chrome/dom/tests/mochitest/webapps/apps/wild_crazy.webapp",
                "app_with_simple_service":"http://127.0.0.1:8888/tests/dom/tests/mochitest/webapps/servers/app_with_simple_service",
                "bad_content_type":"http://test2.example.org:80/chrome/dom/tests/mochitest/webapps/apps/bad_content_type.webapp",
@@ -19,6 +18,16 @@ var SERVERS = {"_primary":"http://127.0.0.1:8088",
                "demopaid":"http://example.org:8000/tests/dom/tests/mochitest/webapps/servers/demopaid",
                "mozillaball":"http://test:80/tests/dom/tests/mochitest/webapps/servers/mozillaball"
  };
+
+function onIframeLoad(name, next) {
+  document.getElementById(name).contentWindow.wrappedJSObject.mozAppscb = mozAppscb;
+  document.getElementById(name).contentWindow.wrappedJSObject.next = next;
+  document.getElementById(name).contentWindow.wrappedJSObject.appURL = SERVERS[name];
+  document.getElementById(name).contentWindow.wrappedJSObject.install = install;
+  document.getElementById(name).contentWindow.wrappedJSObject.getInstalled = getInstalled;
+  document.getElementById(name).contentWindow.wrappedJSObject.ok = ok;
+  document.getElementById(name).contentWindow.wrappedJSObject.info = info;
+}
 
 function uninstallAll(next) {
    var pendingGetAll = navigator.mozApps.mgmt.getAll();
@@ -229,6 +238,9 @@ function install(appURL,next) {
   clickPopup(); 
   var url = appURL.substring(appURL.indexOf('/apps/'));
   var manifest = JSON.parse(readFile(url));
+  if(!manifest.installs_allowed_from) {
+    manifest.installs_allowed_from = "== undefined";
+  }
   for (var i = 0 ; i <  manifest.installs_allowed_from.length; i++)
     manifest.installs_allowed_from[i] = "== " + manifest.installs_allowed_from[i].quote();
 
@@ -361,5 +373,8 @@ Components.classes["@mozilla.org/permissionmanager;1"]
                Components.interfaces.nsIPermissionManager.ALLOW_ACTION);
 
 SpecialPowers.setCharPref("dom.mozApps.whitelist", "http://mochi.test:8888");
+
+
 SpecialPowers.setBoolPref('dom.mozBrowserFramesEnabled', true);
+SpecialPowers.setBoolPref("dom.mozBrowserFramesWhitelist", "http://www.example.com");
 

@@ -10,7 +10,7 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=
   <script type="application/javascript" src="chrome://mochikit/content/tests/SimpleTest/SimpleTest.js"/>
   <script type="application/javascript" src="chrome://mochikit/content/tests/SimpleTest/EventUtils.js"/>
   <script type="application/javascript" src="apphelper.js"/>
-  <script type="application/javascript" src="jschannel.js"/>
+  <!--<script type="application/javascript" src="jschannel.js"/>-->
   <script type="application/javascript" src="jshelper.js"/> 
   <script type="application/javascript" src="urlmatch.js"/>
   <!-- test results are displayed in the html:body -->
@@ -18,6 +18,7 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=
   <body xmlns="http://www.w3.org/1999/xhtml">
   <a href="https://bugzilla.mozilla.org/show_bug.cgi?id="
      target="_blank">Mozilla Bug </a>
+
   </body>
 
 <script type="text/javascript"> 
@@ -27,7 +28,7 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=
 SimpleTest.waitForExplicitFinish();
 
 steps = [setUp, verify_no_apps, get_installed_returns_nothing, install_super_crazy, get_self_returns_nothing, 
-         get_self_on_domain, tearDown];
+         get_self_on_domain, get_installed_on_domain, install_on_domain, tearDown];
 
 runAll(steps);
 
@@ -64,24 +65,26 @@ function get_self_returns_nothing(next) {
 
 function get_self_on_domain(next)  {
   info("in " + arguments.callee.name);
-    var chan =  Channel.build({
-      window: document.getElementById("iframeId").contentWindow,
-      scope: "test",
-      origin: "*",
-      debugOutput: true,
-      onReady: function() {alert("parent ready");
-/*         chan.call({method: "getSelf", success: function(result) {
-            mozAppscb(result,
-            { status: "== \"success\"",
-              installOrigin: "== " + "chrome://mochitests".quote(),
-              origin: "== " + "*".quote(),
-              manifestURL: "== " +  crazyURL.quote()
-            },
-            next);
-         }});
-*/
-      }
-     });
+  onIframeLoad("super_crazy",next);
+  document.getElementById("super_crazy").contentWindow.postMessage("getSelf", '*');
+}
+
+function get_installed_on_domain(next) {
+  info("in " + arguments.callee.name);
+  onIframeLoad("super_crazy",next);
+  document.getElementById("super_crazy").contentWindow.postMessage("getInstalled", '*');
+}
+
+function uninstall_on_domain(next) {
+  info("in " + arguments.callee.name);
+  onIframeLoad("super_crazy",next);
+  document.getElementById("super_crazy").contentWindow.postMessage("uninstall", '*');
+}
+
+function install_on_domain(next) {
+  info("in " + arguments.callee.name);
+  onIframeLoad("no_delegated_install",next);
+  document.getElementById("no_delegated_install").contentWindow.postMessage("install", '*');
 }
 
 function tearDown() {
@@ -89,29 +92,24 @@ function tearDown() {
   uninstallAll(function() {SimpleTest.finish();});
 }
 
+function createIframe(name) {
 
-var crazyURL = SERVERS['super_crazy'];
-crazyURL = crazyURL.substring(0,crazyURL.indexOf("super_crazy.webapp"));
-var iframe = document.createElement("iframe");
-iframe.setAttribute('type', 'content');
-iframe.setAttribute('src', crazyURL + "include.html");
-iframe.setAttribute('style', "width: 350px; height: 350px; display: block;");
-iframe.setAttribute('id', "iframeId");
-iframe.height = window.innerHeight + 'px';
-iframe.width = window.innerWidth + 'px';
-info(crazyURL + "include.html");
-document.documentElement.appendChild(iframe);
+  var appURL = SERVERS[name];
+  appURL = appURL.substring(0,appURL.indexOf(name + ".webapp"));
+  var iframe = document.createElement("iframe");
+  iframe.setAttribute('type', 'content');
+  iframe.setAttribute('src', appURL + "include.html");
+  iframe.setAttribute('style', "width: 350px; height: 350px; display: block;");
+  iframe.setAttribute('id', name);
+  iframe.height = window.innerHeight + 'px';
+  iframe.width = window.innerWidth + 'px';
+  info(appURL + "include.html");
+  document.documentElement.appendChild(iframe);
 
-
-
-function sendMessage(evt)
-{
-  var msg = "child-message";
-  console.log("event origin: " + evt.origin);
-  console.log("event data: " + evt.data);
 }
 
-window.addEventListener("message", sendMessage, false);
+createIframe("super_crazy");
+createIframe("no_delegated_install");
 
 ]]>
 
