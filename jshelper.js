@@ -4,7 +4,6 @@ function subsetOf(resultObj, list) {
     console.log(resultObj[list[i]]);
     returnObj[list[i]] = resultObj[list[i]];
   }
-  //console.log(JSON.stringify(returnObj));
   return returnObj;
 }
 

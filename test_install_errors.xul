@@ -38,9 +38,19 @@ mozAppscb(navigator.mozApps.install(SERVERS['no_delegated_install'], null),
           { status: "== \"error\"",
             name: "== \"PERMISSION_DENIED\""});
 
+clickPopup();
 mozAppscb(navigator.mozApps.install(SERVERS['bad_content_type'], null),
           { status: "== \"error\"",
-            name: "== \"INVALID_MANIFEST\""});
+            name: "== \"INVALID_MANIFEST\""},tearDown);
+
+
+
+function tearDown() {
+  info("in " + arguments.callee.name);
+  uninstallAll(function() {SimpleTest.finish();});
+}
+
+
 ]]>
 
 </script> 

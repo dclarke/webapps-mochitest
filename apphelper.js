@@ -4,6 +4,21 @@ const PERMS_FILE = 0644;
 var popups = 0;
 var popupNotifications = getPopupNotifications(window.top);
 
+
+netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+Components.classes["@mozilla.org/permissionmanager;1"]
+          .getService(Components.interfaces.nsIPermissionManager)
+          .add(SpecialPowers.getDocumentURIObject(window.document),
+               "webapps-manage",
+               Components.interfaces.nsIPermissionManager.ALLOW_ACTION);
+
+SpecialPowers.setCharPref("dom.mozApps.whitelist", "http://mochi.test:8888");
+
+
+SpecialPowers.setBoolPref('dom.mozBrowserFramesEnabled', true);
+SpecialPowers.setBoolPref("dom.mozBrowserFramesWhitelist", "http://www.example.com");
+
+
 var SERVERS = {"_primary":"http://127.0.0.1:8088",
                "super_crazy":"http://www.example.com:80/chrome/dom/tests/mochitest/webapps/apps/super_crazy.webapp",
                "wild_crazy":"http://www.example.com:80/chrome/dom/tests/mochitest/webapps/apps/wild_crazy.webapp",
@@ -30,26 +45,26 @@ function onIframeLoad(name, next) {
 }
 
 function uninstallAll(next) {
-   var pendingGetAll = navigator.mozApps.mgmt.getAll();
-   pendingGetAll.onsuccess = function() {
-     var m = this.result;
-     var total = m.length;
-     finished = (total === 0);
-     for (var i=0; i < m.length; i++) {
-       var app = m[i];
-       var pendingUninstall = app.uninstall();
-       pendingUninstall.onsuccess = function(r) {
-         finished = (--total === 0);
-       };
-       pendingUninstall.onerror = function () {
-         finished = true;
-         writeln('Error:', this.error);
-         throw('Failed');
-       };
-     }
-     info("calling next");
-     next();
-   }
+  var pendingGetAll = navigator.mozApps.mgmt.getAll();
+  pendingGetAll.onsuccess = function() {
+    var m = this.result;
+    var total = m.length;
+    finished = (total === 0);
+    for (var i=0; i < m.length; i++) {
+      var app = m[i];
+      var pendingUninstall = app.uninstall();
+      pendingUninstall.onsuccess = function(r) {
+        finished = (--total === 0);
+      };
+      pendingUninstall.onerror = function () {
+        finished = true;
+        writeln('Error:', this.error);
+        throw('Failed');
+      };
+    }
+    info("calling next");
+    next();
+  }
 }
 
 function uninstall(appURL, next) {
@@ -58,7 +73,6 @@ function uninstall(appURL, next) {
     var m = this.result;
     var finished = false;
     var found = false;
-
     for (var i=0; i < m.length; i++) {
       var app = m[i];
       if (app.manifestURL == appURL) {
@@ -73,13 +87,14 @@ function uninstall(appURL, next) {
               next();
             };
             secondUninstall.onerror = function(r) {
-             info(secondUninstall.error.name);
-             info(secondUninstall.error.manifestURL);
-             next();
-            };
-          } catch(e) {
-              ok(e.message == "Not enough arguments \[mozIDOMApplicationRegistry.install\]", "install returned " + e.message);
+              info(secondUninstall.error.name);
+              info(secondUninstall.error.manifestURL);
               next();
+            };
+          } 
+          catch(e) {
+            ok(e.message == "Not enough arguments \[mozIDOMApplicationRegistry.install\]", "install returned " + e.message);
+            next();
           }
         };
         pendingUninstall.onerror = function () {
@@ -88,15 +103,13 @@ function uninstall(appURL, next) {
           throw('Failed');
         };
       }
-      
     }
-         
- 
- }
- pending.onerror = function ()  {
-   ok(false, "Unexpected on error called in uninstall " );
- }
+  }
+  pending.onerror = function ()  {
+    ok(false, "Unexpected on error called in uninstall " );
+  }
 }
+
 function iterateMethods(label, root, suppress) {
   var arr = [];
   for (var f in root) {
@@ -110,9 +123,6 @@ function iterateMethods(label, root, suppress) {
 
 function js_traverse(template, object) {
   var type = typeof template;
-  console.log("inside js_traverse");
-  console.log("type = " + type);
-  console.log(typeof(object));
  
   if (type == "object") {
     if (Object.keys(template).length == 1 && template["status"]) {
@@ -120,7 +130,7 @@ function js_traverse(template, object) {
       return;
     }
     for (var key in template) {
-      console.log("key: ", key);
+      info("key: ", key);
       var accessor = key.split(".",1);
       if (accessor.length > 1) {
         js_traverse(template[key], object[accessor[0]].accessor[1]);
@@ -135,15 +145,15 @@ function js_traverse(template, object) {
   } else {
     var evaluate = "";
     try {
-      console.log("object = " + object.quote());
-      console.log("template = " + template);
+      info("object = " + object.quote());
+      
+      info("template = " + template);
       evaluate = object.quote() + template;
     } catch (e) {
       evaluate = object + template;
     }
-
-    console.log("evaluate = " + evaluate);
-    console.log(eval(evaluate));
+    info("evaluate = " + evaluate);
+    info(eval(evaluate));
     ok(eval(evaluate), "#" + object + "# is expected to be true per template #" + template + "#");
   }
 }
@@ -178,8 +188,10 @@ function mozAppscb(pending, comparatorObj, next) {
     } else {
       js_traverse(comparatorObj, null);
     }
-    info("calling next");
-    next();
+    if(typeof next == 'function') {
+      info("calling next");
+      next();
+    }
     return pending;
   };
   pending.onerror = function () {
@@ -187,22 +199,24 @@ function mozAppscb(pending, comparatorObj, next) {
     pending.error.status = 'error';
     ok(true, "failure cb called");
     js_traverse(comparatorObj, pending.error);
-    next();
+    if(typeof next == 'function') {
+      info("calling next");
+      next();
+    }
     return pending;
   };
 }
 
 function getPopupNotifications(aWindow) {
-    var Ci = Components.interfaces;
-    var chromeWin = aWindow.QueryInterface(Ci.nsIInterfaceRequestor)
+  var Ci = Components.interfaces;
+  var chromeWin = aWindow.QueryInterface(Ci.nsIInterfaceRequestor)
                            .getInterface(Ci.nsIWebNavigation)
                            .QueryInterface(Ci.nsIDocShell)
                            .chromeEventHandler.ownerDocument.defaultView;
 
-    var popupNotifications = chromeWin.PopupNotifications;
-    return popupNotifications;
+  var popupNotifications = chromeWin.PopupNotifications;
+  return popupNotifications;
 }
-
 
 function triggerMainCommand(popup) {
   var notifications = popup.childNodes;
@@ -244,8 +258,6 @@ function install(appURL,next) {
   for (var i = 0 ; i <  manifest.installs_allowed_from.length; i++)
     manifest.installs_allowed_from[i] = "== " + manifest.installs_allowed_from[i].quote();
 
-  info(manifest.installs_allowed_from);
-  
   mozAppscb(navigator.mozApps.install(
       appURL, null),
       {
@@ -254,7 +266,7 @@ function install(appURL,next) {
         origin: "== " + origin.quote(),
         manifestURL: "== " +  appURL.quote(),
         manifest: {
-          name: "== " + manifest.name.quote(),
+          name: "== " + unescape(manifest.name).quote(),
           installs_allowed_from: manifest.installs_allowed_from
         }
       }, next);
@@ -282,41 +294,13 @@ function getInstalled(appURL, next) {
       installTime: " \> Date.now() - 3000",
       //"receipts": "== " + manifest.receipts,
       manifest: {
-        name: "== " + manifest.name.quote(),
+        name: "== " + unescape(manifest.name).quote(),
         installs_allowed_from: manifest.installs_allowed_from
       }
     }],
     next);
 }
 
-
-function fetchManifest(url, cb) {
-  // contact our server to retrieve the URL
-  url = "/content/chrome/dom/tests/mochitest/webapps" +
-         url.substring(url.indexOf('/apps/'));
-  info(url);
- 
-  var xhr = new XMLHttpRequest();
-  // proxy through HTML5 repo host to support cross domain fetching
-  xhr.open("GET", url, true);
-  xhr.overrideMimeType("text/html");
-  xhr.responseType = "json";
-
-  xhr.onreadystatechange = function(aEvt) {
-    info("readystate = " + xhr.readyState);
-    if (xhr.readyState == 4) {
-      info("readystatus = " + xhr.status);
-      if (xhr.status == 200) {
-        
-        info(xhr.responseText);
-        cb("return " + xhr.responseText);
-      } else {
-        cb(null);
-      }
-    }
-  };
-  xhr.send(null);
-}
 /**
  * Reads text from a file and returns the string.
  *
@@ -328,53 +312,24 @@ function readFile(aFile) {
   var file = Components.classes["@mozilla.org/file/directory_service;1"].
              getService(Components.interfaces.nsIProperties).
              get("CurWorkD", Components.interfaces.nsILocalFile);
-
   var fis = Components.classes["@mozilla.org/network/file-input-stream;1"].
             createInstance(Components.interfaces.nsIFileInputStream);
-
-  
   var paths = "chrome/dom/tests/mochitest/webapps" + aFile;
   var split = paths.split("/");
+  var sis = Components.classes["@mozilla.org/scriptableinputstream;1"].
+            createInstance(Components.interfaces.nsIScriptableInputStream);
+  var utf8Converter = Components.classes["@mozilla.org/intl/utf8converterservice;1"].
+    getService(Components.interfaces.nsIUTF8ConverterService);
+
   for(var i = 0; i < split.length; ++i) {
     file.append(split[i]);
   }
   fis.init(file, MODE_RDONLY, PERMS_FILE, 0);
-  var sis = Components.classes["@mozilla.org/scriptableinputstream;1"].
-            createInstance(Components.interfaces.nsIScriptableInputStream);
   sis.init(fis);
   var text = sis.read(sis.available());
+  text = utf8Converter.convertURISpecToUTF8 (text, "UTF-8");
   sis.close();
   info (text);
   return text;
 }
-
-window.onerror = function (message, filename, lineno) {
-  var m = message;
-  if (filename || lineno) {
-    m += ' (';
-    if (filename) {
-      m += filename;
-      if (lineno) {
-        m += ':' + lineno;
-      }
-    } else {
-      m += 'line ' + lineno;
-    }
-    m += ')';
-  }
-  info('Error: ' + m);
-};
-
-netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
-Components.classes["@mozilla.org/permissionmanager;1"]
-          .getService(Components.interfaces.nsIPermissionManager)
-          .add(SpecialPowers.getDocumentURIObject(window.document),
-               "webapps-manage",
-               Components.interfaces.nsIPermissionManager.ALLOW_ACTION);
-
-SpecialPowers.setCharPref("dom.mozApps.whitelist", "http://mochi.test:8888");
-
-
-SpecialPowers.setBoolPref('dom.mozBrowserFramesEnabled', true);
-SpecialPowers.setBoolPref("dom.mozBrowserFramesWhitelist", "http://www.example.com");
 
