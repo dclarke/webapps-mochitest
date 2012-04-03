@@ -15,8 +15,7 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=
      target="_blank">Mozilla Bug </a>
   </body>
 
-<script type="text/javascript"> 
-<![CDATA[
+<script> 
 
 SimpleTest.waitForExplicitFinish();
 
@@ -38,20 +37,15 @@ mozAppscb(navigator.mozApps.install(SERVERS['no_delegated_install'], null),
           { status: "== \"error\"",
             name: "== \"PERMISSION_DENIED\""});
 
-clickPopup();
+popup_listener();
 mozAppscb(navigator.mozApps.install(SERVERS['bad_content_type'], null),
           { status: "== \"error\"",
             name: "== \"INVALID_MANIFEST\""},tearDown);
-
-
 
 function tearDown() {
   info("in " + arguments.callee.name);
   uninstallAll(function() {SimpleTest.finish();});
 }
-
-
-]]>
 
 </script> 
 

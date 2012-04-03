@@ -21,11 +21,7 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=
 
   </body>
 
-<script type="text/javascript"> 
-<![CDATA[
-
-
-SimpleTest.waitForExplicitFinish();
+<script> 
 
 steps = [setUp, verify_no_apps, get_installed_returns_nothing, install_super_crazy, get_self_returns_nothing, 
          get_self_on_domain, get_installed_on_domain, install_on_domain, tearDown];
@@ -89,7 +85,7 @@ function install_on_domain(next) {
 
 function tearDown() {
   info("in " + arguments.callee.name);
-  uninstallAll(function() {SimpleTest.finish();});
+  uninstallAll();
 }
 
 function createIframe(name) {
@@ -110,8 +106,6 @@ function createIframe(name) {
 
 createIframe("super_crazy");
 createIframe("no_delegated_install");
-
-]]>
 
 </script> 
 

@@ -1,9 +1,7 @@
-const MODE_RDONLY   = 0x01;
+const MODE_READONLY   = 0x01;
 const PERMS_FILE = 0644;
 
-var popups = 0;
 var popupNotifications = getPopupNotifications(window.top);
-
 
 netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
 Components.classes["@mozilla.org/permissionmanager;1"]
@@ -49,7 +47,7 @@ function uninstallAll(next) {
   pendingGetAll.onsuccess = function() {
     var m = this.result;
     var total = m.length;
-    finished = (total === 0);
+    var finished = (total === 0);
     for (var i=0; i < m.length; i++) {
       var app = m[i];
       var pendingUninstall = app.uninstall();
@@ -58,10 +56,10 @@ function uninstallAll(next) {
       };
       pendingUninstall.onerror = function () {
         finished = true;
-        writeln('Error:', this.error);
         throw('Failed');
       };
-    }
+    };
+
     info("calling next");
     next();
   }
@@ -71,8 +69,6 @@ function uninstall(appURL, next) {
   var pending = navigator.mozApps.getInstalled(); 
   pending.onsuccess = function () {
     var m = this.result;
-    var finished = false;
-    var found = false;
     for (var i=0; i < m.length; i++) {
       var app = m[i];
       if (app.manifestURL == appURL) {
@@ -98,7 +94,7 @@ function uninstall(appURL, next) {
           }
         };
         pendingUninstall.onerror = function () {
-          writeln('Error:', this.error);
+          ok(false);
           finished = true;
           throw('Failed');
         };
@@ -192,7 +188,6 @@ function mozAppscb(pending, comparatorObj, next) {
       info("calling next");
       next();
     }
-    return pending;
   };
   pending.onerror = function () {
     done = true;
@@ -203,7 +198,6 @@ function mozAppscb(pending, comparatorObj, next) {
       info("calling next");
       next();
     }
-    return pending;
   };
 }
 
@@ -228,7 +222,7 @@ function triggerMainCommand(popup) {
   notification.button.doCommand();
 }
 
-function clickPopup() {
+function popup_listener() {
   popupNotifications.panel.addEventListener("popupshown", function() {
         triggerMainCommand(this);
   }, false );
@@ -236,10 +230,13 @@ function clickPopup() {
 }
 function runAll(steps) {
   var index = 0;
+  SimpleTest.waitForExplicitFinish();
   function callNext() {
-    if (index >= steps.length) {
+    if (index >= steps.length-1) {
+      SimpleTest.finish();
       return;
     }
+    info("index = " + index);
     var func = steps[index];
     index++;
     func(callNext);
@@ -247,9 +244,9 @@ function runAll(steps) {
   callNext();
 }
 
-function install(appURL,next) {
+function install(appURL, next) {
   var origin = URLParse(appURL).normalize().originOnly().toString();
-  clickPopup(); 
+  popup_listener(); 
   var url = appURL.substring(appURL.indexOf('/apps/'));
   var manifest = JSON.parse(readFile(url));
   if(!manifest.installs_allowed_from) {
@@ -324,7 +321,7 @@ function readFile(aFile) {
   for(var i = 0; i < split.length; ++i) {
     file.append(split[i]);
   }
-  fis.init(file, MODE_RDONLY, PERMS_FILE, 0);
+  fis.init(file, MODE_READONLY, PERMS_FILE, 0);
   sis.init(fis);
   var text = sis.read(sis.available());
   text = utf8Converter.convertURISpecToUTF8 (text, "UTF-8");

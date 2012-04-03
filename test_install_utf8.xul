@@ -17,11 +17,7 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=
      target="_blank">Mozilla Bug </a>
   </body>
 
-<script type="text/javascript"> 
-<![CDATA[
-
-
-SimpleTest.waitForExplicitFinish();
+<script> 
 
 steps = [setUp, verify_no_apps, get_installed_returns_nothing, install_bom, tearDown];
 
@@ -49,21 +45,18 @@ function get_installed_returns_nothing(next) {
 function install_bom(next)  {
   info("in " + arguments.callee.name);
   var appURL = SERVERS['manifest_with_bom'];
+//  var pending = navigator.mozApps.install(appURL, null);
+//  pending.onsuccess = function()  {
+//     info(pending.result.manifest.name.quote());
+//     next();
+//  };
   install(appURL,function() { getInstalled(appURL, next)});
 }
 
-function get_self_returns_nothing(next) {
-  mozAppscb(navigator.mozApps.getSelf(), 
-            { status: "== \"success\""}, 
-            next);
-}
-
-
 function tearDown() {
   info("in " + arguments.callee.name);
-  uninstallAll(function() {SimpleTest.finish();});
+  uninstallAll();
 }
-]]>
 
 </script> 
 
