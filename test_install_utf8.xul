@@ -50,7 +50,7 @@ function install_bom(next)  {
 //     info(pending.result.manifest.name.quote());
 //     next();
 //  };
-  install(appURL,function() { getInstalled(appURL, next)});
+  install(appURL,function() { getInstalled([appURL], next)});
 }
 
 function tearDown() {

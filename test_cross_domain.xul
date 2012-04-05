@@ -24,7 +24,7 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=
 <script> 
 
 steps = [setUp, verify_no_apps, get_installed_returns_nothing, install_super_crazy, get_self_returns_nothing, 
-         get_self_on_domain, get_installed_on_domain, install_on_domain, tearDown];
+         get_self_on_domain, install_on_domain, get_all_installed, get_installed_on_domain, uninstall_on_domain, get_all_on_domain, tearDown];
 
 runAll(steps);
 
@@ -36,26 +36,27 @@ function setUp(next) {
 function verify_no_apps(next)  {
   info("in " + arguments.callee.name);
   mozAppscb(navigator.mozApps.mgmt.getAll(), 
-            { status: "== \"success\""}, 
+            [{ status: "== \"success\""}], 
             next);
 }
 
 function get_installed_returns_nothing(next) {
   info("in " + arguments.callee.name);
   mozAppscb(navigator.mozApps.getInstalled(), 
-            { status: "== \"success\""}, 
+            [{ status: "== \"success\""}], 
             next);
 }
 
 function install_super_crazy(next)  {
   info("in " + arguments.callee.name);
   var appURL = SERVERS['super_crazy'];
-  install(appURL,function() { getInstalled(appURL, next)});
+  install(appURL,function() { getInstalled([appURL], next)});
 }
 
 function get_self_returns_nothing(next) {
+  info("in " + arguments.callee.name);
   mozAppscb(navigator.mozApps.getSelf(), 
-            { status: "== \"success\""}, 
+            [{ status: "== \"success\""}], 
             next);
 }
 
@@ -65,11 +66,18 @@ function get_self_on_domain(next)  {
   document.getElementById("super_crazy").contentWindow.postMessage("getSelf", '*');
 }
 
-function get_installed_on_domain(next) {
+function install_on_domain(next) {
   info("in " + arguments.callee.name);
-  onIframeLoad("super_crazy",next);
-  document.getElementById("super_crazy").contentWindow.postMessage("getInstalled", '*');
+  onIframeLoad("no_delegated_install",next);
+  document.getElementById("no_delegated_install").contentWindow.postMessage("install", '*');
 }
+
+function get_all_installed(next) {
+  info("in " + arguments.callee.name);
+  var appURLs = [SERVERS['super_crazy'], SERVERS['no_delegated_install']];
+  getInstalled(appURLs,next);        
+}
+
 
 function uninstall_on_domain(next) {
   info("in " + arguments.callee.name);
@@ -77,31 +85,21 @@ function uninstall_on_domain(next) {
   document.getElementById("super_crazy").contentWindow.postMessage("uninstall", '*');
 }
 
-function install_on_domain(next) {
+function get_all_on_domain(next) {
   info("in " + arguments.callee.name);
-  onIframeLoad("no_delegated_install",next);
-  document.getElementById("no_delegated_install").contentWindow.postMessage("install", '*');
+  onIframeLoad("super_crazy",next);
+  document.getElementById("super_crazy").contentWindow.postMessage("mgmt.getAll", '*');
+}
+
+function get_installed_on_domain(next) {
+  info("in " + arguments.callee.name);
+  onIframeLoad("super_crazy",next);
+  document.getElementById("super_crazy").contentWindow.postMessage("getInstalled", '*');
 }
 
 function tearDown() {
   info("in " + arguments.callee.name);
   uninstallAll();
-}
-
-function createIframe(name) {
-
-  var appURL = SERVERS[name];
-  appURL = appURL.substring(0,appURL.indexOf(name + ".webapp"));
-  var iframe = document.createElement("iframe");
-  iframe.setAttribute('type', 'content');
-  iframe.setAttribute('src', appURL + "include.html");
-  iframe.setAttribute('style', "width: 350px; height: 350px; display: block;");
-  iframe.setAttribute('id', name);
-  iframe.height = window.innerHeight + 'px';
-  iframe.width = window.innerWidth + 'px';
-  info(appURL + "include.html");
-  document.documentElement.appendChild(iframe);
-
 }
 
 createIframe("super_crazy");

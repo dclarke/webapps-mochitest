@@ -32,38 +32,38 @@ function setUp(next) {
 function verify_no_apps(next)  {
   info("in " + arguments.callee.name);
   mozAppscb(navigator.mozApps.mgmt.getAll(), 
-            { status: "== \"success\""}, 
+            [{ status: "== \"success\""}], 
             next);
 }
 
 function get_installed_returns_nothing(next) {
   info("in " + arguments.callee.name);
   mozAppscb(navigator.mozApps.getInstalled(), 
-            { status: "== \"success\""}, 
+            [{ status: "== \"success\""}], 
             next);
 }
 
 function install_super_crazy(next)  {
   info("in " + arguments.callee.name);
   var appURL = SERVERS['super_crazy'];
-  install(appURL,function() { getInstalled(appURL, next)});
+  install(appURL,function() { getInstalled([appURL], next)});
 }
 
 function get_self_returns_nothing(next) {
   mozAppscb(navigator.mozApps.getSelf(), 
-            { status: "== \"success\""}, 
+            [{ status: "== \"success\""}], 
             next);
 }
 
 function install_wild_crazy(next) {
   var appURL = SERVERS['wild_crazy'];
-  install(appURL, function() { getInstalled(appURL, next)});
+  install(appURL, function() { getInstalled([appURL], next)});
 }
 
 function uninstall_wild_crazy(next)  {
   var appURL = SERVERS['wild_crazy'];
   uninstall(appURL, function() { mozAppscb(navigator.mozApps.getInstalled(),
-           { status: "== \"success\""},
+           [{ status: "== \"success\""}],
            next)});
 }
 

@@ -9,6 +9,7 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=
   <script type="application/javascript" src="chrome://mochikit/content/tests/SimpleTest/SimpleTest.js"/>
   <script type="application/javascript" src="chrome://mochikit/content/tests/SimpleTest/EventUtils.js"/>
   <script type="application/javascript" src="apphelper.js"/>
+  <script type="application/javascript" src="jshelper.js"/>
   <!-- test results are displayed in the html:body -->
   <body xmlns="http://www.w3.org/1999/xhtml">
   <a href="https://bugzilla.mozilla.org/show_bug.cgi?id="
@@ -17,30 +18,57 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=
 
 <script> 
 
-SimpleTest.waitForExplicitFinish();
+createIframe("no_delegated_install");
 
-try { 
-  navigator.mozApps.install();
-} catch (e) {
-  ok(e.message == "Not enough arguments \[mozIDOMApplicationRegistry.install\]", "install returned " + e.message);
+steps = [setUp, no_args, parse_error, invalid_manifest, permission_denied, invalid_content,
+         mgmt_api_errors, tearDown];
+
+runAll(steps);
+
+function setUp(next) {
+  info("calling uninstallAll");
+  uninstallAll(next);
 }
 
-mozAppscb(navigator.mozApps.install(SERVERS['json_syntax_error'], null), 
-          { status: "== \"error\"",
-            name: "== \"MANIFEST_PARSE_ERROR\""});
+function no_args(next)  {
+  try { 
+    navigator.mozApps.install();
+  } catch (e) {
+    ok(e.message == "Not enough arguments \[mozIDOMApplicationRegistry.install\]", "install returned " + e.message);
+    next();
+  }
+}
 
-mozAppscb(navigator.mozApps.install(SERVERS['missing_required_field'], null),
-          { status: "== \"error\"",
-            name: "== \"INVALID_MANIFEST\""});
+function parse_error(next)  {
 
-mozAppscb(navigator.mozApps.install(SERVERS['no_delegated_install'], null),
-          { status: "== \"error\"",
-            name: "== \"PERMISSION_DENIED\""});
+  mozAppscb(navigator.mozApps.install(SERVERS['json_syntax_error'], null), 
+          [{ status: "== \"error\"",
+            name: "== \"MANIFEST_PARSE_ERROR\""}], next);
+}
 
-popup_listener();
-mozAppscb(navigator.mozApps.install(SERVERS['bad_content_type'], null),
-          { status: "== \"error\"",
-            name: "== \"INVALID_MANIFEST\""},tearDown);
+function invalid_manifest(next) {
+  mozAppscb(navigator.mozApps.install(SERVERS['missing_required_field'], null),
+          [{ status: "== \"error\"",
+            name: "== \"INVALID_MANIFEST\""}], next);
+}
+
+function permission_denied(next) {
+  mozAppscb(navigator.mozApps.install(SERVERS['no_delegated_install'], null),
+          [{ status: "== \"error\"",
+            name: "== \"PERMISSION_DENIED\""}], next);
+}
+
+function invalid_content(next) {
+  popup_listener();
+  mozAppscb(navigator.mozApps.install(SERVERS['bad_content_type'], null),
+          [{ status: "== \"error\"",
+             name: "== \"INVALID_MANIFEST\""}], next);
+}
+
+function mgmt_api_denied(next) {
+  onIframeLoad("no_delegated_install", next);
+  document.getElementById("no_delegated_install").contentWindow.postMessage("mgmt.getAll", '*');
+}
 
 function tearDown() {
   info("in " + arguments.callee.name);

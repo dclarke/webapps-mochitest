@@ -10,17 +10,17 @@
   <!-- finally, define our handlers that'll be invoked over jschannel by the parent -->
   <script>
    window.addEventListener('message', doSomething);
-
+   var installed = false;
    function doSomething(event) {
      info(event.data);
      if(event.data == "getSelf") {
        var origin = URLParse(appURL).normalize().originOnly().toString();
        mozAppscb(navigator.mozApps.getSelf(),
-           { status: "== \"success\"",
+           [{ status: "== \"success\"",
              installOrigin: "== " + "chrome://mochitests".quote(),
              origin: "== " + origin.quote(),
              manifestURL: "== " +  appURL.quote()
-           },
+           }],
            next);
       }
       else if(event.data == "uninstall") {
@@ -30,25 +30,44 @@
           result.onsuccess = function()  {
             ok(true, "app has been uninstalled by the domain");
             next();
-          }
+          };
           result.onerror = function() {
             ok(false, "app uninstall failed");
             next();
-          }
-        }
+          };
+        };
         pending.onerror = function() {
           ok(false, "app uninstall failed through getSelf");
           next();
-        }
+        };
       }
       else if(event.data == "install") {
         install(appURL,next);
+        installed = true;
       }
       else if(event.data == "getInstalled") {
-        getInstalled(appURL, next); 
+        if(installed == true) {
+          getInstalled([appURL], next); 
+        }
+        mozAppscb(navigator.mozApps.getInstalled(),
+            [{ status: "== \"success\""}],
+            next);
+      } 
+      else if(event.data == "mgmt.getAll") {
+        var hostname = window.location.hostname;
+        info(hostname);
+        if (hostname != "http://example.com") {
+          mozAppscb(navigator.mozApps.mgmt.getAll(),
+            [{ status: "== \"error\"",
+               name: "== \"DENIED\""
+            }], next);
+        } else {
+          mozAppscb(navigator.mozApps.mgmt.getAll(),
+            [{ status: "== \"success\""}], next);            
+        }
+
+        
       }
    }
   </script>
-
-
 </html>
