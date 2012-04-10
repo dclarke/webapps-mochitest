@@ -10,6 +10,7 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=
   <script type="application/javascript" src="chrome://mochikit/content/tests/SimpleTest/SimpleTest.js"/>
   <script type="application/javascript" src="chrome://mochikit/content/tests/SimpleTest/EventUtils.js"/>
   <script type="application/javascript" src="apphelper.js"/>
+  <script type="application/javascript" src="jshelper.js"/>
   <script type="application/javascript" src="urlmatch.js"/>
   <!-- test results are displayed in the html:body -->
   <body xmlns="http://www.w3.org/1999/xhtml">
@@ -24,33 +25,38 @@ steps = [setUp, verify_no_apps, get_installed_returns_nothing, install_bom, tear
 runAll(steps);
 
 function setUp(next) { 
-  info("calling uninstallAll");
+  info("in " + arguments.callee.name);
   uninstallAll(next);
 }
 
 function verify_no_apps(next)  {
   info("in " + arguments.callee.name);
   mozAppscb(navigator.mozApps.mgmt.getAll(), 
-            { status: "== \"success\""}, 
+            [{ status: "== \"success\""}], 
+            ok,
             next);
 }
 
 function get_installed_returns_nothing(next) {
   info("in " + arguments.callee.name);
   mozAppscb(navigator.mozApps.getInstalled(), 
-            { status: "== \"success\""}, 
+            [{ status: "== \"success\""}], 
+            ok, 
             next);
 }
 
 function install_bom(next)  {
   info("in " + arguments.callee.name);
   var appURL = SERVERS['manifest_with_bom'];
-//  var pending = navigator.mozApps.install(appURL, null);
-//  pending.onsuccess = function()  {
-//     info(pending.result.manifest.name.quote());
-//     next();
-//  };
-  install(appURL,function() { getInstalled([appURL], next)});
+  popup_listener();
+  var pending = navigator.mozApps.install(appURL, null);
+  pending.onsuccess = function()  {
+     var name = pending.result.manifest.name;
+     var description = pending.result.manifest.description;
+     ok(name == "TheBOM  ゲゴケ゚セニツ゚ヅヂチ", name);
+     ok(description == "This App is THE BOM, yo. ヅヂチ", description);
+     next();
+  };
 }
 
 function tearDown() {

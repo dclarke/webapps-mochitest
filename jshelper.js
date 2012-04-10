@@ -9,15 +9,6 @@ var SERVERS = {"_primary":"http://127.0.0.1:8088",
                "no_delegated_install":"http://sub2.test2.example.org:80/chrome/dom/tests/mochitest/webapps/apps/no_delegated_install.webapp"
  };
 
-function subsetOf(resultObj, list) {
-  var returnObj = {} ;
-  for (var i=0; i < list.length; i++) {
-    console.log(resultObj[list[i]]);
-    returnObj[list[i]] = resultObj[list[i]];
-  }
-  return returnObj;
-}
-
 function createIframe(name) {
 
   var appURL = SERVERS[name];
@@ -34,9 +25,9 @@ function createIframe(name) {
 
 }
 
-function onIframeLoad(name, next) {
+function onIframeLoad(name, check, next) {
   document.getElementById(name).contentWindow.wrappedJSObject.next = next;
-  document.getElementById(name).contentWindow.wrappedJSObject.ok = ok;
+  document.getElementById(name).contentWindow.wrappedJSObject.check = check;
   document.getElementById(name).contentWindow.wrappedJSObject.info = info;
   document.getElementById(name).contentWindow.wrappedJSObject.appURL = SERVERS[name]; 
   document.getElementById(name).contentWindow.wrappedJSObject.popup_listener = popup_listener;
@@ -55,29 +46,22 @@ function uninstallAll(next) {
       var pendingUninstall = app.uninstall();
       pendingUninstall.onsuccess = function(r) {
         finished = (--total === 0);
-        info(finished);
+        if(finished == true) {
+          next();
+        }
       };
       pendingUninstall.onerror = function () {
         finished = true;
         throw('Failed');
+        if(finished == true) {
+          next();
+        }
       };
     }
-    var t; 
-    function uninstallcheck() {
-      info(finished);
-      if(finished == true) {
-        if (t) {
-          clearTimeout(t);
-        }
-        next();
-      }
-      else {
-        info("else statement");
-        t = setTimeout("uninstallcheck()", 1000);
-      }
-    }
-    uninstallcheck();
-  };
+  if(finished == true) {
+    next();
+  }
+  }
 }
 
 function subsetOf(resultObj, list) {
@@ -88,7 +72,7 @@ function subsetOf(resultObj, list) {
   return returnObj;
 }
 
-function uninstall(appURL, next) {
+function uninstall(appURL, check, next) {
   var pending = navigator.mozApps.getInstalled(); 
   pending.onsuccess = function () {
     var m = this.result;
@@ -99,7 +83,7 @@ function uninstall(appURL, next) {
         var pendingUninstall = app.uninstall();
         pendingUninstall.onsuccess = function(r) {
           finished = true;
-          ok(true, "app has been uninstalled");
+          check(true, "app has been uninstalled");
           try {
             var secondUninstall = app.uninstall();
             secondUninstall.onsuccess = function(r) {
@@ -112,12 +96,12 @@ function uninstall(appURL, next) {
             };
           } 
           catch(e) {
-            ok(e.message == "Not enough arguments \[mozIDOMApplicationRegistry.install\]", "install returned " + e.message);
+            check(e.message == "Not enough arguments \[mozIDOMApplicationRegistry.install\]", "install returned " + e.message);
             next();
           }
         };
         pendingUninstall.onerror = function () {
-          ok(false);
+          check(false);
           finished = true;
           throw('Failed');
         };
@@ -125,7 +109,7 @@ function uninstall(appURL, next) {
     }
   }
   pending.onerror = function ()  {
-    ok(false, "Unexpected on error called in uninstall " );
+    check(false, "Unexpected on error called in uninstall " );
   }
 }
 
@@ -137,30 +121,30 @@ function dump(foo) {
   info(output);
 }
 
-function js_traverse(template, object) {
+function js_traverse(template, check, object) {
   var type = typeof template;
 
   if (type == "object") {
     if (Object.keys(template).length == 1 && template["status"]) {
-      ok(!object || object.length == 0,"The return object from mozApps api was null as expected");
+      check(!object || object.length == 0,"The return object from mozApps api was null as expected");
       return;
     }
     for (var key in template) {
       info("key: ", key);
       var accessor = key.split(".",1);
       if (accessor.length > 1) {
-        js_traverse(template[key], object[accessor[0]].accessor[1]);
+        js_traverse(template[key], check, object[accessor[0]].accessor[1]);
       } else {
         if(object[key]) {
-          js_traverse(template[key], object[key]);
+          js_traverse(template[key], check, object[key]);
         } else {
-          ok(typeof template[key] == "undefined", key + " is undefined as expected");
+          check(typeof template[key] == "undefined", key + " is undefined as expected");
         }
       }
     }
   } else if (type == "array") {
     for (var i = 0; i < object.length; i++) {
-      js_traverse(template[i],object[i]);
+      js_traverse(template[i], check, object[i]);
     }
   } else {
     var evaluate = "";
@@ -178,30 +162,31 @@ function js_traverse(template, object) {
     
     info("evaluate = " + evaluate);
     info(eval(evaluate));
-    ok(eval(evaluate), "#" + object + "# is expected to be true per template #" + template + "#");
+    check(eval(evaluate), "#" + object + "# is expected to be true per template #" + template + "#");
   }
 }
 
-function mozAppscb(pending, comparatorObj, next) {
+function mozAppscb(pending, comparatorObj, check, next) {
   info("inside mozAppscb"); 
   pending.onsuccess = function () {
-    ok(true, "success cb, called");
+    info("success cb, called");
     if(pending.result) {
       if(pending.result.length) {
         info("length = " + pending.result.length);
         for(i=0;i < pending.result.length;i++) {
           pending.result[i].status= 'success';
-          js_traverse(comparatorObj[i],pending.result[i]);
+          js_traverse(comparatorObj[i], check, pending.result[i]);
         }
       } else {
         info("comparatorOBj in else");
         pending.result.status = 'success';
-        js_traverse(comparatorObj[0], pending.result);
+        js_traverse(comparatorObj[0], check, pending.result);
       }
     } else {
-      info("HERE");
-      js_traverse(comparatorObj[0], null);
+      info('here');
+      js_traverse(comparatorObj[0], check, null);
     }
+    info("typeof next = " + typeof next);
     if(typeof next == 'function') {
       info("calling next");
       next();
@@ -210,8 +195,8 @@ function mozAppscb(pending, comparatorObj, next) {
 
   pending.onerror = function () {
     pending.error.status = 'error';
-    ok(true, "failure cb called");
-    js_traverse(comparatorObj[0], pending.error);
+    check(true, "failure cb called");
+    js_traverse(comparatorObj[0], check, pending.error);
     if(typeof next == 'function') {
       info("calling next");
       next();
@@ -235,7 +220,7 @@ function runAll(steps) {
   callNext();
 }
 
-function install(appURL, next) {
+function install(appURL, check, receipts, next) {
   var origin = URLParse(appURL).normalize().originOnly().toString();
   var installOrigin = URLParse(window.location.href).normalize().originOnly().toString();
   info("installOrigin = " + installOrigin);
@@ -259,24 +244,23 @@ function install(appURL, next) {
           name: "== " + unescape(manifest.name).quote(),
           installs_allowed_from: manifest.installs_allowed_from
         }
-      }], next);
+      }], check, 
+      next);
 }
 
-function getInstalled(appURLs, next) {
+function getInstalled(appURLs, check, receipts, next) {
   var checkInstalled = [];
+  info("HERE");
   for (var i = 0; i < appURLs.length ; i++) {
     var appURL = appURLs[i];
     var origin = URLParse(appURL).normalize().originOnly().toString();
     var url = appURL.substring(appURL.indexOf('/apps/'));
     var manifest = JSON.parse(readFile(url));
-    var receipts = manifest.receipts;
    
     if(manifest.installs_allowed_from) {
       for (var j = 0 ; j <  manifest.installs_allowed_from.length; j++)
         manifest.installs_allowed_from[j] = "== " + manifest.installs_allowed_from[j].quote();
     }
-    for (v in manifest.receipts)
-      manifest.receipts[v] = "== " + manifest.receipts[v].quote();
     
     checkInstalled[i] = {
         status: "== " + "success".quote(),
@@ -292,6 +276,11 @@ function getInstalled(appURLs, next) {
      };
   }
   info(JSON.stringify(checkInstalled));
-  mozAppscb(navigator.mozApps.getInstalled(), checkInstalled, next);
+  mozAppscb(navigator.mozApps.getInstalled(), checkInstalled, check, next);
 }
 
+function check_event_listener_fired (next) {
+  todo(triggered, "Event Listener fired");
+  triggered = false;
+  next();
+}

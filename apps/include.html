@@ -12,15 +12,16 @@
    window.addEventListener('message', doSomething);
    var installed = false;
    function doSomething(event) {
-     info(event.data);
      if(event.data == "getSelf") {
        var origin = URLParse(appURL).normalize().originOnly().toString();
+       info("HERE");
        mozAppscb(navigator.mozApps.getSelf(),
            [{ status: "== \"success\"",
              installOrigin: "== " + "chrome://mochitests".quote(),
              origin: "== " + origin.quote(),
              manifestURL: "== " +  appURL.quote()
            }],
+           check, 
            next);
       }
       else if(event.data == "uninstall") {
@@ -28,29 +29,31 @@
         pending.onsuccess = function ()  {
           var result = pending.result.uninstall();
           result.onsuccess = function()  {
-            ok(true, "app has been uninstalled by the domain");
+            check(true, "app has been uninstalled by the domain");
             next();
           };
           result.onerror = function() {
-            ok(false, "app uninstall failed");
+            check(false, "app uninstall failed");
             next();
           };
         };
         pending.onerror = function() {
-          ok(false, "app uninstall failed through getSelf");
+          check(false, "app uninstall failed through getSelf");
           next();
         };
       }
       else if(event.data == "install") {
-        install(appURL,next);
+        info('type of check = ' + typeof check);
+        install(appURL, check, null, next);
         installed = true;
       }
       else if(event.data == "getInstalled") {
         if(installed == true) {
-          getInstalled([appURL], next); 
+          getInstalled([appURL], check, null, next);
         }
         mozAppscb(navigator.mozApps.getInstalled(),
             [{ status: "== \"success\""}],
+            check, 
             next);
       } 
       else if(event.data == "mgmt.getAll") {
@@ -60,14 +63,45 @@
           mozAppscb(navigator.mozApps.mgmt.getAll(),
             [{ status: "== \"error\"",
                name: "== \"DENIED\""
-            }], next);
+            }], 
+            check, 
+            next
+          );
         } else {
           mozAppscb(navigator.mozApps.mgmt.getAll(),
-            [{ status: "== \"success\""}], next);            
+            [{ status: "== \"success\""}], 
+            check, 
+            next
+          );            
         }
-
-        
       }
+      else if(event.data == "mgmt.event_error") {
+        var hostname = window.location.hostname;
+        info(hostname);
+        if (hostname != "http://example.com") {
+          try {
+            navigator.mozApps.mgmt.addEventListener("install", function (ev) {check(ev.application.origin);});
+            
+          } catch (e) {
+            info("HERE");
+            check(!e.message, e.message);
+          }
+          try {
+            navigator.mozApps.mgmt.removeEventListener("install", function (ev) {check(!ev.application.origin);});
+          } catch (e) {
+            check(!e.message, e.message);
+          } 
+          finally {
+            next();
+          } 
+        } else {
+          mozAppscb(navigator.mozApps.mgmt.getAll(),
+            [{ status: "== \"success\""}], 
+            check, 
+            next
+          );
+        }
+      }   
    }
   </script>
 </html>

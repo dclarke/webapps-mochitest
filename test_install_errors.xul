@@ -21,16 +21,17 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=
 createIframe("no_delegated_install");
 
 steps = [setUp, no_args, parse_error, invalid_manifest, permission_denied, invalid_content,
-         mgmt_api_errors, tearDown];
+         mgmt_api_errors, mgmt_api_add_listener, tearDown];
 
 runAll(steps);
 
 function setUp(next) {
-  info("calling uninstallAll");
+  info("in " + arguments.callee.name);
   uninstallAll(next);
 }
 
 function no_args(next)  {
+  info("in " + arguments.callee.name);
   try { 
     navigator.mozApps.install();
   } catch (e) {
@@ -40,34 +41,44 @@ function no_args(next)  {
 }
 
 function parse_error(next)  {
-
+  info("in " + arguments.callee.name);  
   mozAppscb(navigator.mozApps.install(SERVERS['json_syntax_error'], null), 
           [{ status: "== \"error\"",
-            name: "== \"MANIFEST_PARSE_ERROR\""}], next);
+            name: "== \"MANIFEST_PARSE_ERROR\""}], ok, next);
 }
 
 function invalid_manifest(next) {
+  info("in " + arguments.callee.name);
   mozAppscb(navigator.mozApps.install(SERVERS['missing_required_field'], null),
           [{ status: "== \"error\"",
-            name: "== \"INVALID_MANIFEST\""}], next);
+            name: "== \"INVALID_MANIFEST\""}], ok, next);
 }
 
 function permission_denied(next) {
+  info("in " + arguments.callee.name);
+  popup_listener();
   mozAppscb(navigator.mozApps.install(SERVERS['no_delegated_install'], null),
           [{ status: "== \"error\"",
-            name: "== \"PERMISSION_DENIED\""}], next);
+            name: "== \"PERMISSION_DENIED\""}], todo, next);
 }
 
 function invalid_content(next) {
-  popup_listener();
+  info("in " + arguments.callee.name);
   mozAppscb(navigator.mozApps.install(SERVERS['bad_content_type'], null),
           [{ status: "== \"error\"",
-             name: "== \"INVALID_MANIFEST\""}], next);
+             name: "== \"INVALID_MANIFEST\""}], todo, next);
 }
 
-function mgmt_api_denied(next) {
-  onIframeLoad("no_delegated_install", next);
+function mgmt_api_errors(next) {
+  info("in " + arguments.callee.name);
+  onIframeLoad("no_delegated_install", ok, next);
   document.getElementById("no_delegated_install").contentWindow.postMessage("mgmt.getAll", '*');
+}
+
+function mgmt_api_add_listener(next) {
+  info("in " + arguments.callee.name);
+  onIframeLoad("no_delegated_install", todo, next);
+  document.getElementById("no_delegated_install").contentWindow.postMessage("mgmt.event_error", '*');
 }
 
 function tearDown() {

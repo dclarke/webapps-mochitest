@@ -10,7 +10,6 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=
   <script type="application/javascript" src="chrome://mochikit/content/tests/SimpleTest/SimpleTest.js"/>
   <script type="application/javascript" src="chrome://mochikit/content/tests/SimpleTest/EventUtils.js"/>
   <script type="application/javascript" src="apphelper.js"/>
-  <!--<script type="application/javascript" src="jschannel.js"/>-->
   <script type="application/javascript" src="jshelper.js"/> 
   <script type="application/javascript" src="urlmatch.js"/>
   <!-- test results are displayed in the html:body -->
@@ -23,20 +22,22 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=
 
 <script> 
 
-steps = [setUp, verify_no_apps, get_installed_returns_nothing, install_super_crazy, get_self_returns_nothing, 
-         get_self_on_domain, install_on_domain, get_all_installed, get_installed_on_domain, uninstall_on_domain, get_all_on_domain, tearDown];
+steps = [setUp, verify_no_apps, get_installed_returns_nothing, install_super_crazy, check_event_listener_fired, get_self_returns_nothing, 
+         get_self_on_domain, install_on_domain, check_event_listener_fired, get_all_installed, 
+         get_installed_on_domain, uninstall_on_domain, get_all_on_domain, tearDown];
 
 runAll(steps);
 
 function setUp(next) { 
-  info("calling uninstallAll");
+  info("in " + arguments.callee.name);
   uninstallAll(next);
 }
 
 function verify_no_apps(next)  {
   info("in " + arguments.callee.name);
-  mozAppscb(navigator.mozApps.mgmt.getAll(), 
-            [{ status: "== \"success\""}], 
+  mozAppscb(navigator.mozApps.mgmt.getAll(),
+            [{ status: "== \"success\""}],
+            ok,
             next);
 }
 
@@ -44,56 +45,62 @@ function get_installed_returns_nothing(next) {
   info("in " + arguments.callee.name);
   mozAppscb(navigator.mozApps.getInstalled(), 
             [{ status: "== \"success\""}], 
+            ok, 
             next);
 }
 
 function install_super_crazy(next)  {
   info("in " + arguments.callee.name);
   var appURL = SERVERS['super_crazy'];
-  install(appURL,function() { getInstalled([appURL], next)});
+
+  install(appURL, ok, null, function() {
+    getInstalled([appURL], ok, null, next);
+  });
 }
 
 function get_self_returns_nothing(next) {
   info("in " + arguments.callee.name);
   mozAppscb(navigator.mozApps.getSelf(), 
-            [{ status: "== \"success\""}], 
+            [{ status: "== \"success\""}],
+            ok, 
             next);
 }
 
 function get_self_on_domain(next)  {
   info("in " + arguments.callee.name);
-  onIframeLoad("super_crazy",next);
+  onIframeLoad("super_crazy", ok, next);
+ 
   document.getElementById("super_crazy").contentWindow.postMessage("getSelf", '*');
 }
 
 function install_on_domain(next) {
   info("in " + arguments.callee.name);
-  onIframeLoad("no_delegated_install",next);
+  onIframeLoad("no_delegated_install", ok, next);
   document.getElementById("no_delegated_install").contentWindow.postMessage("install", '*');
 }
 
 function get_all_installed(next) {
   info("in " + arguments.callee.name);
   var appURLs = [SERVERS['super_crazy'], SERVERS['no_delegated_install']];
-  getInstalled(appURLs,next);        
+  getInstalled(appURLs, ok, null, next);
 }
 
 
 function uninstall_on_domain(next) {
   info("in " + arguments.callee.name);
-  onIframeLoad("super_crazy",next);
+  onIframeLoad("super_crazy", ok, next);
   document.getElementById("super_crazy").contentWindow.postMessage("uninstall", '*');
 }
 
 function get_all_on_domain(next) {
   info("in " + arguments.callee.name);
-  onIframeLoad("super_crazy",next);
+  onIframeLoad("super_crazy", ok, next);
   document.getElementById("super_crazy").contentWindow.postMessage("mgmt.getAll", '*');
 }
 
 function get_installed_on_domain(next) {
   info("in " + arguments.callee.name);
-  onIframeLoad("super_crazy",next);
+  onIframeLoad("super_crazy", ok, next);
   document.getElementById("super_crazy").contentWindow.postMessage("getInstalled", '*');
 }
 

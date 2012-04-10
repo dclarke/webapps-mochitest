@@ -51,13 +51,13 @@ include $(topsrcdir)/config/rules.mk
 
 _TEST_FILES	= \
 		test_install_app.xul \
-    apphelper.js \
     test_list_api.xul \
     test_install_errors.xul \
     test_cross_domain.xul \
     test_install_utf8.xul \
-    jschannel.js \
+    test_install_receipts.xul \
     jshelper.js \
+    apphelper.js \
     urlmatch.js \
 		$(NULL)
 

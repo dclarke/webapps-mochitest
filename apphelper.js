@@ -14,6 +14,9 @@ SpecialPowers.setCharPref("dom.mozApps.whitelist", "http://mochi.test:8888");
 SpecialPowers.setBoolPref('dom.mozBrowserFramesEnabled', true);
 SpecialPowers.setBoolPref("dom.mozBrowserFramesWhitelist", "http://www.example.com");
 
+var triggered = false;
+//  navigator.mozApps.mgmt.addEventListener("install", function() {triggered = true;});
+
 function iterateMethods(label, root, suppress) {
   var arr = [];
   for (var f in root) {
@@ -47,6 +50,7 @@ function triggerMainCommand(popup) {
 }
 
 function popup_listener() {
+  info("here in popup listener"); 
   popupNotifications.panel.addEventListener("popupshown", function() {
         triggerMainCommand(this);
   }, false );

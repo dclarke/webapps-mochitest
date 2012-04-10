@@ -20,8 +20,7 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=
 
 <script> 
 
-steps = [setUp, verify_no_apps, get_installed_returns_nothing, install_super_crazy, get_self_returns_nothing, 
-         install_wild_crazy, uninstall_wild_crazy, tearDown];
+steps = [setUp, install_super_crazy, tearDown];
 
 runAll(steps);
 
@@ -30,53 +29,26 @@ function setUp(next) {
   uninstallAll(next);
 }
 
-function verify_no_apps(next)  {
-  info("in " + arguments.callee.name);
-  mozAppscb(navigator.mozApps.mgmt.getAll(), 
-            [{ status: "== \"success\""}], 
-            ok,
-            next);
-}
-
-function get_installed_returns_nothing(next) {
-  info("in " + arguments.callee.name);
-  mozAppscb(navigator.mozApps.getInstalled(), 
-            [{ status: "== \"success\""}], 
-            ok,
-            next);
-}
 
 function install_super_crazy(next)  {
   info("in " + arguments.callee.name);
   var appURL = SERVERS['super_crazy'];
-  install(appURL, ok, null, function() { 
-    getInstalled([appURL], ok, null, next);
-  });
-}
-
-function get_self_returns_nothing(next) {
-  mozAppscb(navigator.mozApps.getSelf(), 
-            [{ status: "== \"success\""}], 
-            ok, 
-            next);
-}
-
-function install_wild_crazy(next) {
-  var appURL = SERVERS['wild_crazy'];
-  install(appURL, ok, null,  function() { 
-     getInstalled([appURL], ok, null, next);
-     }
-  );
-}
-
-function uninstall_wild_crazy(next)  {
-  var appURL = SERVERS['wild_crazy'];
-  uninstall(appURL, function() { 
-    mozAppscb(navigator.mozApps.getInstalled(),
-           [{ status: "== \"success\""}],
-           ok, 
-           next);
-  });
+  popup_listener();
+  var pending = navigator.mozApps.install(appURL, {receipts: ["a",0, true,false,null,undefined,{one:1},{nest:{ed:"hi"}},NaN,Infinity]});
+  pending.onsuccess = function ()  {
+    ok(pending.result.receipts[0] == "a", pending.result.receipts[0]);
+    ok(pending.result.receipts[1] == 0, pending.result.receipts[1]);
+    ok(pending.result.receipts[2] == true, pending.result.receipts[2]); 
+    ok(pending.result.receipts[3] == false, pending.result.receipts[3]); 
+    ok(pending.result.receipts[4] == null, pending.result.receipts[4]); 
+    ok(pending.result.receipts[5] == undefined, pending.result.receipts[5]);
+    ok(pending.result.receipts[6].one == 1, pending.result.receipts[6].one); 
+    ok(pending.result.receipts[7].nest.ed == "hi", pending.result.receipts[7].nest.ed);
+    todo(pending.result.receipts[8] == NaN, pending.result.receipts[8]);
+    todo(pending.result.receipts[9] == Infinity, pending.result.receipts[9]);
+ 
+    next();
+  };
 }
 
 function tearDown() {
