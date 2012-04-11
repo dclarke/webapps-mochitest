@@ -3,6 +3,8 @@ const PERMS_FILE = 0644;
 
 var popupNotifications = getPopupNotifications(window.top);
 
+var event_listener_loaded = {};
+
 netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
 Components.classes["@mozilla.org/permissionmanager;1"]
           .getService(Components.interfaces.nsIPermissionManager)

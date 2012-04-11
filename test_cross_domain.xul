@@ -12,11 +12,14 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=
   <script type="application/javascript" src="apphelper.js"/>
   <script type="application/javascript" src="jshelper.js"/> 
   <script type="application/javascript" src="urlmatch.js"/>
+
   <!-- test results are displayed in the html:body -->
   <head></head>
   <body xmlns="http://www.w3.org/1999/xhtml">
   <a href="https://bugzilla.mozilla.org/show_bug.cgi?id="
      target="_blank">Mozilla Bug </a>
+  <iframe id="super_crazy" onload="go();" src="http://www.example.com:80/chrome/dom/tests/mochitest/webapps/apps/include.html"/>
+  <iframe id="no_delegated_install" onload="go();" src="http://sub2.test2.example.org:80/chrome/dom/tests/mochitest/webapps/apps/include.html"/>
 
   </body>
 
@@ -25,11 +28,19 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=
 steps = [setUp, verify_no_apps, get_installed_returns_nothing, install_super_crazy, check_event_listener_fired, get_self_returns_nothing, 
          get_self_on_domain, install_on_domain, check_event_listener_fired, get_all_installed, 
          get_installed_on_domain, uninstall_on_domain, get_all_on_domain, tearDown];
+var iframes_loaded = 0 ;
 
-runAll(steps);
+function go() {
+  ++iframes_loaded;
+  if (iframes_loaded >= 2) {
+    runAll(steps);
+  } 
+}
+
 
 function setUp(next) { 
   info("in " + arguments.callee.name);
+  
   uninstallAll(next);
 }
 
@@ -68,8 +79,11 @@ function get_self_returns_nothing(next) {
 
 function get_self_on_domain(next)  {
   info("in " + arguments.callee.name);
+  if (!event_listener_loaded["super_crazy"]) {
+    if(document.getElementById(name))
+      document.getElementById(name).contentWindow.postMessage("areweReadyYet", '*');
+  }
   onIframeLoad("super_crazy", ok, next);
- 
   document.getElementById("super_crazy").contentWindow.postMessage("getSelf", '*');
 }
 
@@ -84,7 +98,6 @@ function get_all_installed(next) {
   var appURLs = [SERVERS['super_crazy'], SERVERS['no_delegated_install']];
   getInstalled(appURLs, ok, null, next);
 }
-
 
 function uninstall_on_domain(next) {
   info("in " + arguments.callee.name);
@@ -108,9 +121,6 @@ function tearDown() {
   info("in " + arguments.callee.name);
   uninstallAll();
 }
-
-createIframe("super_crazy");
-createIframe("no_delegated_install");
 
 </script> 
 

@@ -9,21 +9,6 @@ var SERVERS = {"_primary":"http://127.0.0.1:8088",
                "no_delegated_install":"http://sub2.test2.example.org:80/chrome/dom/tests/mochitest/webapps/apps/no_delegated_install.webapp"
  };
 
-function createIframe(name) {
-
-  var appURL = SERVERS[name];
-  appURL = appURL.substring(0,appURL.indexOf(name + ".webapp"));
-  var iframe = document.createElement("iframe");
-  iframe.setAttribute('type', 'content');
-  iframe.setAttribute('src', appURL + "include.html");
-  iframe.setAttribute('style', "width: 350px; height: 350px; display: block;");
-  iframe.setAttribute('id', name);
-  iframe.height = window.innerHeight + 'px';
-  iframe.width = window.innerWidth + 'px';
-  info(appURL + "include.html");
-  document.documentElement.appendChild(iframe);
-
-}
 
 function onIframeLoad(name, check, next) {
   document.getElementById(name).contentWindow.wrappedJSObject.next = next;
@@ -172,7 +157,6 @@ function mozAppscb(pending, comparatorObj, check, next) {
     info("success cb, called");
     if(pending.result) {
       if(pending.result.length) {
-        info("length = " + pending.result.length);
         for(i=0;i < pending.result.length;i++) {
           pending.result[i].status= 'success';
           js_traverse(comparatorObj[i], check, pending.result[i]);
@@ -183,10 +167,8 @@ function mozAppscb(pending, comparatorObj, check, next) {
         js_traverse(comparatorObj[0], check, pending.result);
       }
     } else {
-      info('here');
       js_traverse(comparatorObj[0], check, null);
     }
-    info("typeof next = " + typeof next);
     if(typeof next == 'function') {
       info("calling next");
       next();
@@ -250,7 +232,6 @@ function install(appURL, check, receipts, next) {
 
 function getInstalled(appURLs, check, receipts, next) {
   var checkInstalled = [];
-  info("HERE");
   for (var i = 0; i < appURLs.length ; i++) {
     var appURL = appURLs[i];
     var origin = URLParse(appURL).normalize().originOnly().toString();

@@ -9,8 +9,10 @@
   <script src="../jshelper.js"></script>
   <!-- finally, define our handlers that'll be invoked over jschannel by the parent -->
   <script>
+
    window.addEventListener('message', doSomething);
    var installed = false;
+
    function doSomething(event) {
      if(event.data == "getSelf") {
        var origin = URLParse(appURL).normalize().originOnly().toString();
@@ -101,7 +103,7 @@
             next
           );
         }
-      }   
+      } 
    }
   </script>
 </html>
