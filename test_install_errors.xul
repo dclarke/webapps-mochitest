@@ -14,11 +14,14 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=
   <body xmlns="http://www.w3.org/1999/xhtml">
   <a href="https://bugzilla.mozilla.org/show_bug.cgi?id="
      target="_blank">Mozilla Bug </a>
+  <iframe id="no_delegated_install" onload="go();" src="http://sub2.test2.example.org:80/chrome/dom/tests/mochitest/webapps/apps/include.html"/>
   </body>
 
 <script> 
 
-createIframe("no_delegated_install");
+function go() {
+  runAll(steps);
+}
 
 steps = [setUp, no_args, parse_error, invalid_manifest, permission_denied, invalid_content,
          mgmt_api_errors, mgmt_api_add_listener, tearDown];
