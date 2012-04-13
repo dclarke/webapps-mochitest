@@ -16,7 +16,6 @@
    function doSomething(event) {
      if(event.data == "getSelf") {
        var origin = URLParse(appURL).normalize().originOnly().toString();
-       info("HERE");
        mozAppscb(navigator.mozApps.getSelf(),
            [{ status: "== \"success\"",
              installOrigin: "== " + "chrome://mochitests".quote(),
@@ -85,7 +84,6 @@
             navigator.mozApps.mgmt.addEventListener("install", function (ev) {check(ev.application.origin);});
             
           } catch (e) {
-            info("HERE");
             check(!e.message, e.message);
           }
           try {

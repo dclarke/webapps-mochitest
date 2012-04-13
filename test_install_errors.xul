@@ -26,8 +26,6 @@ function go() {
 steps = [setUp, no_args, parse_error, invalid_manifest, permission_denied, invalid_content,
          mgmt_api_errors, mgmt_api_add_listener, tearDown];
 
-runAll(steps);
-
 function setUp(next) {
   info("in " + arguments.callee.name);
   uninstallAll(next);
@@ -62,7 +60,7 @@ function permission_denied(next) {
   popup_listener();
   mozAppscb(navigator.mozApps.install(SERVERS['no_delegated_install'], null),
           [{ status: "== \"error\"",
-            name: "== \"PERMISSION_DENIED\""}], todo, next);
+            name: "== \"DENIED\""}], todo, next);
 }
 
 function invalid_content(next) {
