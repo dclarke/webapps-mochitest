@@ -1,3 +1,7 @@
+# Any copyright is dedicated to the Public Domain.
+#   - http://creativecommons.org/publicdomain/zero/1.0/
+#   - https://bugzilla.mozilla.org/show_bug.cgi?id=741549
+
 const MODE_READONLY   = 0x01;
 const PERMS_FILE = 0644;
 

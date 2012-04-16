@@ -1,3 +1,7 @@
+# Any copyright is dedicated to the Public Domain.
+#   - http://creativecommons.org/publicdomain/zero/1.0/
+#   - https://bugzilla.mozilla.org/show_bug.cgi?id=741549
+
 var SERVERS = {"_primary":"http://127.0.0.1:8088",
                "super_crazy":"http://www.example.com:80/chrome/dom/tests/mochitest/webapps/apps/super_crazy.webapp",
                "wild_crazy":"http://www.example.com:80/chrome/dom/tests/mochitest/webapps/apps/wild_crazy.webapp",
