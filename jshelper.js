@@ -9,15 +9,29 @@ var SERVERS = {"_primary":"http://127.0.0.1:8088",
                "no_delegated_install":"http://sub2.test2.example.org:80/chrome/dom/tests/mochitest/webapps/apps/no_delegated_install.webapp"
  };
 
+var DEBUG = false;
+
+/**
+ * Wraps objects from the chrome context, and allows them to be accessed via the iframe
+ * @name  The id of the iframe that is being loaded
+ * @check An abstraction over ok / todo to allow for that determination to be made by the invoking code
+ * @next  The next operation to jump to, this might need to be invoked by the iframe when the test has completed
+ */
 
 function onIframeLoad(name, check, next) {
   document.getElementById(name).contentWindow.wrappedJSObject.next = next;
+  document.getElementById(name).contentWindow.wrappedJSObject.getOrigin = getOrigin;
   document.getElementById(name).contentWindow.wrappedJSObject.check = check;
-  document.getElementById(name).contentWindow.wrappedJSObject.info = info;
+  document.getElementById(name).contentWindow.wrappedJSObject.debug = debug;
   document.getElementById(name).contentWindow.wrappedJSObject.appURL = SERVERS[name]; 
   document.getElementById(name).contentWindow.wrappedJSObject.popup_listener = popup_listener;
   document.getElementById(name).contentWindow.wrappedJSObject.readFile = readFile;
 }
+
+/**
+ * Uninstall All uninstalls all Apps
+ * @next  The next operation to jump to, this might need to be invoked by the iframe when the test has completed
+ */
 
 function uninstallAll(next) {
   var pendingGetAll = navigator.mozApps.mgmt.getAll();
@@ -25,7 +39,7 @@ function uninstallAll(next) {
     var m = this.result;
     var total = m.length;
     var finished = (total === 0);
-    info("total = " + total);
+    debug("total = " + total);
     for (var i=0; i < m.length; i++) {
       var app = m[i];
       var pendingUninstall = app.uninstall();
@@ -57,6 +71,13 @@ function subsetOf(resultObj, list) {
   return returnObj;
 }
 
+/**
+ * Uninstall uninstalls a specific App
+ * @appURL The manifest app url
+ * @check An abstraction over ok / todo to allow for that determination to be made by the invoking code
+ * @next  The next operation to jump to, this might need to be invoked by the iframe when the test has completed
+ */
+
 function uninstall(appURL, check, next) {
   var pending = navigator.mozApps.getInstalled(); 
   pending.onsuccess = function () {
@@ -75,8 +96,8 @@ function uninstall(appURL, check, next) {
               next();
             };
             secondUninstall.onerror = function(r) {
-              info(secondUninstall.error.name);
-              info(secondUninstall.error.manifestURL);
+              debug(secondUninstall.error.name);
+              debug(secondUninstall.error.manifestURL);
               next();
             };
           } 
@@ -98,13 +119,11 @@ function uninstall(appURL, check, next) {
   }
 }
 
-function dump(foo) {
-  var output = '';
-  for (property in foo) {
-    output += property + ': ' + foo[property]+'; ';
-  }
-  info(output);
-}
+/**
+ * A function that recurses a javascript object, and compares with the template to determine if the object has the expected properties
+ * @check An abstraction over ok / todo to allow for that determination to be made by the invoking code
+ * @object Most likely a DOM object
+ */
 
 function js_traverse(template, check, object) {
   var type = typeof template;
@@ -115,7 +134,7 @@ function js_traverse(template, check, object) {
       return;
     }
     for (var key in template) {
-      info("key: ", key);
+      debug("key: ", key);
       var accessor = key.split(".",1);
       if (accessor.length > 1) {
         js_traverse(template[key], check, object[accessor[0]].accessor[1]);
@@ -135,26 +154,34 @@ function js_traverse(template, check, object) {
     var evaluate = "";
     
     try {
-      info("object = " + object.quote());
-      info("template = " + template);
+      debug("object = " + object.quote());
+      debug("template = " + template);
       
       evaluate = object.quote() + template;
     } 
     catch (e) {
-      info("template = " + template);
+      debug("template = " + template);
       evaluate = object + template;
     }
     
-    info("evaluate = " + evaluate);
-    info(eval(evaluate));
+    debug("evaluate = " + evaluate);
+    debug(eval(evaluate));
     check(eval(evaluate), "#" + object + "# is expected to be true per template #" + template + "#");
   }
 }
 
+/**
+ * Used to compare the result of a navigator.mozApps query, and jump to the next operation
+ * @pending the variable hold the result of the navigator.mozApps query
+ * @comparatorObj the array of json objects, representing what should be returned from the mozApps query 
+ * @check An abstraction over ok / todo to allow for that determination to be made by the invoking code
+ * @next  The next operation to jump to
+ */
+
 function mozAppscb(pending, comparatorObj, check, next) {
-  info("inside mozAppscb"); 
+  debug("inside mozAppscb"); 
   pending.onsuccess = function () {
-    info("success cb, called");
+    debug("success cb, called");
     if(pending.result) {
       if(pending.result.length) {
         for(i=0;i < pending.result.length;i++) {
@@ -162,7 +189,7 @@ function mozAppscb(pending, comparatorObj, check, next) {
           js_traverse(comparatorObj[i], check, pending.result[i]);
         }
       } else {
-        info("comparatorOBj in else");
+        debug("comparatorOBj in else");
         pending.result.status = 'success';
         js_traverse(comparatorObj[0], check, pending.result);
       }
@@ -170,7 +197,7 @@ function mozAppscb(pending, comparatorObj, check, next) {
       js_traverse(comparatorObj[0], check, null);
     }
     if(typeof next == 'function') {
-      info("calling next");
+      debug("calling next");
       next();
     }
   };
@@ -180,11 +207,16 @@ function mozAppscb(pending, comparatorObj, check, next) {
     check(true, "failure cb called");
     js_traverse(comparatorObj[0], check, pending.error);
     if(typeof next == 'function') {
-      info("calling next");
+      debug("calling next");
       next();
     }
   };
 }
+
+/**
+ * Helper function to step through the various steps of the test
+ * @steps an array of steps that we need to traverse in order to complete the test
+ */
 
 function runAll(steps) {
   var index = 0;
@@ -194,7 +226,7 @@ function runAll(steps) {
       SimpleTest.finish();
       return;
     }
-    info("index = " + index);
+    debug("index = " + index);
     var func = steps[index];
     index++;
     func(callNext);
@@ -202,10 +234,18 @@ function runAll(steps) {
   callNext();
 }
 
-function install(appURL, check, receipts, next) {
-  var origin = URLParse(appURL).normalize().originOnly().toString();
-  var installOrigin = URLParse(window.location.href).normalize().originOnly().toString();
-  info("installOrigin = " + installOrigin);
+/**
+ * Uninstall uninstalls a specific App
+ * @appURL The manifest app url
+ * @check An abstraction over ok / todo to allow for that determination to be made by the invoking code
+ * @next  The next operation to jump to, this might need to be invoked by the iframe when the test has completed
+ */
+
+function install(appURL, check, next) {
+  var origin = getOrigin(appURL);
+  debug("origin = " + origin);
+  var installOrigin = getOrigin(window.location.href);
+  debug("installOrigin = " + installOrigin);
   popup_listener(); 
   var url = appURL.substring(appURL.indexOf('/apps/'));
   var manifest = JSON.parse(readFile(url));
@@ -230,11 +270,18 @@ function install(appURL, check, receipts, next) {
       next);
 }
 
-function getInstalled(appURLs, check, receipts, next) {
+/**
+ * Gets an installed App and compares it against the expected
+ * @appURL The manifest app url
+ * @check An abstraction over ok / todo to allow for that determination to be made by the invoking code
+ * @next  The next operation to jump to, this might need to be invoked by the iframe when the test has completed
+ */
+
+function getInstalled(appURLs, check, next) {
   var checkInstalled = [];
   for (var i = 0; i < appURLs.length ; i++) {
     var appURL = appURLs[i];
-    var origin = URLParse(appURL).normalize().originOnly().toString();
+    var origin = getOrigin(appURL);
     var url = appURL.substring(appURL.indexOf('/apps/'));
     var manifest = JSON.parse(readFile(url));
    
@@ -249,15 +296,24 @@ function getInstalled(appURLs, check, receipts, next) {
         origin: "== " + origin.quote(),
         manifestURL: "== " +  appURL.quote(),
         installTime: " \> Date.now() - 3000",
-        //"receipts": "== " + manifest.receipts,
         manifest: {
           name: "== " + unescape(manifest.name).quote(),
           installs_allowed_from: manifest.installs_allowed_from
         }
      };
   }
-  info(JSON.stringify(checkInstalled));
+  debug(JSON.stringify(checkInstalled));
   mozAppscb(navigator.mozApps.getInstalled(), checkInstalled, check, next);
+}
+
+/**
+ * debug function, which basically controls what goes to stdout
+ * @msg  The message you want to output
+ */
+function debug(msg) {
+  if(DEBUG  == true)  {
+    info(msg);
+  }
 }
 
 function check_event_listener_fired (next) {

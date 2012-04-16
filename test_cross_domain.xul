@@ -1,8 +1,10 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/css" href="chrome://global/skin"?>
 <?xml-stylesheet type="text/css" href="chrome://mochikit/content/tests/SimpleTest/test.css"?>
-<!--
-https://bugzilla.mozilla.org/show_bug.cgi?id=
+
+<!-- Any copyright is dedicated to the Public Domain.
+   - http://creativecommons.org/publicdomain/zero/1.0/ 
+   - https://bugzilla.mozilla.org/show_bug.cgi?id=741549
 -->
 <window title="Mozilla Bug "
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
@@ -11,7 +13,6 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=
   <script type="application/javascript" src="chrome://mochikit/content/tests/SimpleTest/EventUtils.js"/>
   <script type="application/javascript" src="apphelper.js"/>
   <script type="application/javascript" src="jshelper.js"/> 
-  <script type="application/javascript" src="urlmatch.js"/>
 
   <!-- test results are displayed in the html:body -->
   <head></head>
@@ -39,13 +40,13 @@ function go() {
 
 
 function setUp(next) { 
-  info("in " + arguments.callee.name);
+  debug("in " + arguments.callee.name);
   
   uninstallAll(next);
 }
 
 function verify_no_apps(next)  {
-  info("in " + arguments.callee.name);
+  debug("in " + arguments.callee.name);
   mozAppscb(navigator.mozApps.mgmt.getAll(),
             [{ status: "== \"success\""}],
             ok,
@@ -53,7 +54,7 @@ function verify_no_apps(next)  {
 }
 
 function get_installed_returns_nothing(next) {
-  info("in " + arguments.callee.name);
+  debug("in " + arguments.callee.name);
   mozAppscb(navigator.mozApps.getInstalled(), 
             [{ status: "== \"success\""}], 
             ok, 
@@ -61,16 +62,16 @@ function get_installed_returns_nothing(next) {
 }
 
 function install_super_crazy(next)  {
-  info("in " + arguments.callee.name);
+  debug("in " + arguments.callee.name);
   var appURL = SERVERS['super_crazy'];
 
-  install(appURL, ok, null, function() {
-    getInstalled([appURL], ok, null, next);
+  install(appURL, ok, function() {
+    getInstalled([appURL], ok, next);
   });
 }
 
 function get_self_returns_nothing(next) {
-  info("in " + arguments.callee.name);
+  debug("in " + arguments.callee.name);
   mozAppscb(navigator.mozApps.getSelf(), 
             [{ status: "== \"success\""}],
             ok, 
@@ -78,7 +79,7 @@ function get_self_returns_nothing(next) {
 }
 
 function get_self_on_domain(next)  {
-  info("in " + arguments.callee.name);
+  debug("in " + arguments.callee.name);
   if (!event_listener_loaded["super_crazy"]) {
     if(document.getElementById(name))
       document.getElementById(name).contentWindow.postMessage("areweReadyYet", '*');
@@ -88,37 +89,37 @@ function get_self_on_domain(next)  {
 }
 
 function install_on_domain(next) {
-  info("in " + arguments.callee.name);
+  debug("in " + arguments.callee.name);
   onIframeLoad("no_delegated_install", ok, next);
   document.getElementById("no_delegated_install").contentWindow.postMessage("install", '*');
 }
 
 function get_all_installed(next) {
-  info("in " + arguments.callee.name);
+  debug("in " + arguments.callee.name);
   var appURLs = [SERVERS['super_crazy'], SERVERS['no_delegated_install']];
-  getInstalled(appURLs, ok, null, next);
+  getInstalled(appURLs, ok, next);
 }
 
 function uninstall_on_domain(next) {
-  info("in " + arguments.callee.name);
+  debug("in " + arguments.callee.name);
   onIframeLoad("super_crazy", ok, next);
   document.getElementById("super_crazy").contentWindow.postMessage("uninstall", '*');
 }
 
 function get_all_on_domain(next) {
-  info("in " + arguments.callee.name);
+  debug("in " + arguments.callee.name);
   onIframeLoad("super_crazy", ok, next);
   document.getElementById("super_crazy").contentWindow.postMessage("mgmt.getAll", '*');
 }
 
 function get_installed_on_domain(next) {
-  info("in " + arguments.callee.name);
+  debug("in " + arguments.callee.name);
   onIframeLoad("super_crazy", ok, next);
   document.getElementById("super_crazy").contentWindow.postMessage("getInstalled", '*');
 }
 
 function tearDown() {
-  info("in " + arguments.callee.name);
+  debug("in " + arguments.callee.name);
   uninstallAll();
 }
 

@@ -1,9 +1,14 @@
+<!-- Any copyright is dedicated to the Public Domain.
+   - http://creativecommons.org/publicdomain/zero/1.0/ -->
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/css" href="chrome://global/skin"?>
 <?xml-stylesheet type="text/css" href="chrome://mochikit/content/tests/SimpleTest/test.css"?>
-<!--
-https://bugzilla.mozilla.org/show_bug.cgi?id=
+
+<!-- Any copyright is dedicated to the Public Domain.
+   - http://creativecommons.org/publicdomain/zero/1.0/
+   - https://bugzilla.mozilla.org/show_bug.cgi?id=741549
 -->
+
 <window title="Mozilla Bug "
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <script type="application/javascript" src="chrome://mochikit/content/chrome-harness.js"></script>
@@ -11,7 +16,6 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=
   <script type="application/javascript" src="chrome://mochikit/content/tests/SimpleTest/EventUtils.js"/>
   <script type="application/javascript" src="apphelper.js"/>
   <script type="application/javascript" src="jshelper.js"/>
-  <script type="application/javascript" src="urlmatch.js"/>
   <!-- test results are displayed in the html:body -->
   <body xmlns="http://www.w3.org/1999/xhtml">
   <a href="https://bugzilla.mozilla.org/show_bug.cgi?id="
@@ -25,12 +29,12 @@ steps = [setUp, verify_no_apps, get_installed_returns_nothing, install_bom, tear
 runAll(steps);
 
 function setUp(next) { 
-  info("in " + arguments.callee.name);
+  debug("in " + arguments.callee.name);
   uninstallAll(next);
 }
 
 function verify_no_apps(next)  {
-  info("in " + arguments.callee.name);
+  debug("in " + arguments.callee.name);
   mozAppscb(navigator.mozApps.mgmt.getAll(), 
             [{ status: "== \"success\""}], 
             ok,
@@ -38,7 +42,7 @@ function verify_no_apps(next)  {
 }
 
 function get_installed_returns_nothing(next) {
-  info("in " + arguments.callee.name);
+  debug("in " + arguments.callee.name);
   mozAppscb(navigator.mozApps.getInstalled(), 
             [{ status: "== \"success\""}], 
             ok, 
@@ -46,7 +50,7 @@ function get_installed_returns_nothing(next) {
 }
 
 function install_bom(next)  {
-  info("in " + arguments.callee.name);
+  debug("in " + arguments.callee.name);
   var appURL = SERVERS['manifest_with_bom'];
   popup_listener();
   var pending = navigator.mozApps.install(appURL, null);
@@ -60,7 +64,7 @@ function install_bom(next)  {
 }
 
 function tearDown() {
-  info("in " + arguments.callee.name);
+  debug("in " + arguments.callee.name);
   uninstallAll();
 }
 

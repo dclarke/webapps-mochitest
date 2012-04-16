@@ -1,9 +1,14 @@
+<!-- Any copyright is dedicated to the Public Domain.
+   - http://creativecommons.org/publicdomain/zero/1.0/ -->
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/css" href="chrome://global/skin"?>
 <?xml-stylesheet type="text/css" href="chrome://mochikit/content/tests/SimpleTest/test.css"?>
-<!--
-https://bugzilla.mozilla.org/show_bug.cgi?id=
+
+<!-- Any copyright is dedicated to the Public Domain.
+   - http://creativecommons.org/publicdomain/zero/1.0/
+   - https://bugzilla.mozilla.org/show_bug.cgi?id=741549
 -->
+
 <window title="Mozilla Bug "
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <script type="application/javascript" src="chrome://mochikit/content/chrome-harness.js"></script>
@@ -11,7 +16,6 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=
   <script type="application/javascript" src="chrome://mochikit/content/tests/SimpleTest/EventUtils.js"/>
   <script type="application/javascript" src="apphelper.js"/>
   <script type="application/javascript" src="jshelper.js"/>
-  <script type="application/javascript" src="urlmatch.js"/>
   <!-- test results are displayed in the html:body -->
   <body xmlns="http://www.w3.org/1999/xhtml">
   <a href="https://bugzilla.mozilla.org/show_bug.cgi?id="
@@ -25,13 +29,13 @@ steps = [setUp, install_super_crazy, tearDown];
 runAll(steps);
 
 function setUp(next) { 
-  info("in " + arguments.callee.name);
+  debug("in " + arguments.callee.name);
   uninstallAll(next);
 }
 
 
 function install_super_crazy(next)  {
-  info("in " + arguments.callee.name);
+  debug("in " + arguments.callee.name);
   var appURL = SERVERS['super_crazy'];
   popup_listener();
   var pending = navigator.mozApps.install(appURL, {receipts: ["a",0, true,false,null,undefined,{one:1},{nest:{ed:"hi"}},NaN,Infinity]});
@@ -53,7 +57,7 @@ function install_super_crazy(next)  {
 }
 
 function tearDown() {
-  info("in " + arguments.callee.name);
+  debug("in " + arguments.callee.name);
   uninstallAll();
 }
 

@@ -5,19 +5,26 @@ var popupNotifications = getPopupNotifications(window.top);
 
 var event_listener_loaded = {};
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+
 Components.classes["@mozilla.org/permissionmanager;1"]
           .getService(Components.interfaces.nsIPermissionManager)
           .add(SpecialPowers.getDocumentURIObject(window.document),
                "webapps-manage",
                Components.interfaces.nsIPermissionManager.ALLOW_ACTION);
 
+
 SpecialPowers.setCharPref("dom.mozApps.whitelist", "http://mochi.test:8888");
 SpecialPowers.setBoolPref('dom.mozBrowserFramesEnabled', true);
 SpecialPowers.setBoolPref("dom.mozBrowserFramesWhitelist", "http://www.example.com");
 
 var triggered = false;
-//  navigator.mozApps.mgmt.addEventListener("install", function() {triggered = true;});
+try {
+  navigator.mozApps.mgmt.addEventListener("install", function() {triggered = true;});
+} catch (e) {
+}
 
 function iterateMethods(label, root, suppress) {
   var arr = [];
@@ -45,14 +52,14 @@ function triggerMainCommand(popup) {
   var notifications = popup.childNodes;
   ok(notifications.length > 0, "at least one notification displayed");
   var notification = notifications[0];
-  info("triggering command: " + notification.getAttribute("buttonlabel"));
+  debug("triggering command: " + notification.getAttribute("buttonlabel"));
 
   // 20, 10 so that the inner button is hit
   notification.button.doCommand();
 }
 
 function popup_listener() {
-  info("here in popup listener"); 
+  debug("here in popup listener"); 
   popupNotifications.panel.addEventListener("popupshown", function() {
         triggerMainCommand(this);
   }, false );
@@ -87,8 +94,10 @@ function readFile(aFile) {
   var text = sis.read(sis.available());
   text = utf8Converter.convertURISpecToUTF8 (text, "UTF-8");
   sis.close();
-  info (text);
+  debug (text);
   return text;
-
 }
 
+function getOrigin(url) {
+  return Services.io.newURI(url, null, null).prePath;
+}
