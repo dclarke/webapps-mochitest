@@ -4,10 +4,9 @@
 <html>
   <body>
     This page contains javascript that can be included in an iframe and
-    upon recieving commands over jschannel will attempt to invoke privileged
+    upon recieving commands over postMessage will attempt to invoke privileged
     repository management APIs.
   </body>
-  <!-- jschannel, that's how our parent will control us -->
   <script src="../urlmatch.js"></script> 
   <script src="../jshelper.js"></script>
   <!-- finally, define our handlers that'll be invoked over jschannel by the parent -->
