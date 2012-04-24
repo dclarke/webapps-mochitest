@@ -60,7 +60,6 @@ function invalid_manifest(next) {
 
 function permission_denied(next) {
   debug("in " + arguments.callee.name);
-  popup_listener();
   mozAppscb(navigator.mozApps.install(SERVERS['no_delegated_install'], null),
           [{ status: "== \"error\"",
             name: "== \"DENIED\""}], todo, next);
@@ -83,11 +82,6 @@ function mgmt_api_add_listener(next) {
   debug("in " + arguments.callee.name);
   onIframeLoad("no_delegated_install", todo, next);
   document.getElementById("no_delegated_install").contentWindow.postMessage("mgmt.event_error", '*');
-}
-
-function tearDown() {
-  debug("in " + arguments.callee.name);
-  uninstallAll(function() {SimpleTest.finish();});
 }
 
 </script> 

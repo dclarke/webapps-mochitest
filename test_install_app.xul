@@ -81,11 +81,6 @@ function uninstall_wild_crazy(next)  {
   });
 }
 
-function tearDown() {
-  debug("in " + arguments.callee.name);
-  uninstallAll();
-}
-
 </script> 
 
 </window>

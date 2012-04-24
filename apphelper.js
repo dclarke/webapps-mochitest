@@ -1,6 +1,7 @@
-# Any copyright is dedicated to the Public Domain.
-#   - http://creativecommons.org/publicdomain/zero/1.0/
-#   - https://bugzilla.mozilla.org/show_bug.cgi?id=741549
+/* Any copyright is dedicated to the Public Domain.
+   - http://creativecommons.org/publicdomain/zero/1.0/
+   - https://bugzilla.mozilla.org/show_bug.cgi?id=741549
+*/
 
 const MODE_READONLY   = 0x01;
 const PERMS_FILE = 0644;
@@ -19,14 +20,14 @@ Components.classes["@mozilla.org/permissionmanager;1"]
                "webapps-manage",
                Components.interfaces.nsIPermissionManager.ALLOW_ACTION);
 
-
 SpecialPowers.setCharPref("dom.mozApps.whitelist", "http://mochi.test:8888");
 SpecialPowers.setBoolPref('dom.mozBrowserFramesEnabled', true);
+SpecialPowers.setBoolPref('browser.mozApps.installer.dry_run', true);
 SpecialPowers.setBoolPref("dom.mozBrowserFramesWhitelist", "http://www.example.com");
 
 var triggered = false;
 try {
-  navigator.mozApps.mgmt.addEventListener("install", function() {triggered = true;});
+  //navigator.mozApps.mgmt.addEventListener("install", function() {triggered = true;});
 } catch (e) {
 }
 
@@ -48,8 +49,7 @@ function getPopupNotifications(aWindow) {
                            .QueryInterface(Ci.nsIDocShell)
                            .chromeEventHandler.ownerDocument.defaultView;
 
-  var popupNotifications = chromeWin.PopupNotifications;
-  return popupNotifications;
+  return chromeWin.PopupNotifications;
 }
 
 function triggerMainCommand(popup) {
@@ -66,7 +66,7 @@ function popup_listener() {
   debug("here in popup listener"); 
   popupNotifications.panel.addEventListener("popupshown", function() {
         triggerMainCommand(this);
-  }, false );
+  }, false);
 }
 
 /**
@@ -105,3 +105,10 @@ function readFile(aFile) {
 function getOrigin(url) {
   return Services.io.newURI(url, null, null).prePath;
 }
+
+function tearDown() {
+  debug("in " + arguments.callee.name);
+  uninstallAll();
+  SpecialPowers.clearUserPref('browser.mozApps.installer.dry_run');
+}
+

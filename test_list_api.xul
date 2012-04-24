@@ -1,5 +1,3 @@
-<!-- Any copyright is dedicated to the Public Domain.
-   - http://creativecommons.org/publicdomain/zero/1.0/ -->
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/css" href="chrome://global/skin"?>
 <?xml-stylesheet type="text/css" href="chrome://mochikit/content/tests/SimpleTest/test.css"?>
@@ -15,6 +13,7 @@
   <script type="application/javascript" src="chrome://mochikit/content/tests/SimpleTest/SimpleTest.js"/>
   <script type="application/javascript" src="chrome://mochikit/content/tests/SimpleTest/EventUtils.js"/>
   <script type="application/javascript" src="apphelper.js"/>
+  <script type="application/javascript" src="jshelper.js"/>
   <!-- test results are displayed in the html:body -->
   <body xmlns="http://www.w3.org/1999/xhtml">
   <a href="https://bugzilla.mozilla.org/show_bug.cgi?id="
@@ -39,7 +38,7 @@ actualMethods = actualMethods.concat(iterateMethods("navigator.mozApps.", naviga
 actualMethods = actualMethods.concat(iterateMethods("navigator.mozApps.mgmt.", navigator.mozApps.mgmt));
 actualMethods = actualMethods.sort();
 ok(JSON.stringify(actualMethods) == JSON.stringify(expectedMethods), actualMethods);
-
+tearDown();
 ]]>
 
 </script> 

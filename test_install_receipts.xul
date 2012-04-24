@@ -1,5 +1,3 @@
-<!-- Any copyright is dedicated to the Public Domain.
-   - http://creativecommons.org/publicdomain/zero/1.0/ -->
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/css" href="chrome://global/skin"?>
 <?xml-stylesheet type="text/css" href="chrome://mochikit/content/tests/SimpleTest/test.css"?>
@@ -37,7 +35,6 @@ function setUp(next) {
 function install_super_crazy(next)  {
   debug("in " + arguments.callee.name);
   var appURL = SERVERS['super_crazy'];
-  popup_listener();
   var pending = navigator.mozApps.install(appURL, {receipts: ["a",0, true,false,null,undefined,{one:1},{nest:{ed:"hi"}},NaN,Infinity]});
   pending.onsuccess = function ()  {
     var receipts = pending.result.receipts; 
@@ -54,11 +51,6 @@ function install_super_crazy(next)  {
  
     next();
   };
-}
-
-function tearDown() {
-  debug("in " + arguments.callee.name);
-  uninstallAll();
 }
 
 </script> 

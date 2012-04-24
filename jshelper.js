@@ -1,6 +1,7 @@
-# Any copyright is dedicated to the Public Domain.
-#   - http://creativecommons.org/publicdomain/zero/1.0/
-#   - https://bugzilla.mozilla.org/show_bug.cgi?id=741549
+/* Any copyright is dedicated to the Public Domain.
+    - http://creativecommons.org/publicdomain/zero/1.0/
+    - https://bugzilla.mozilla.org/show_bug.cgi?id=741549
+*/
 
 var SERVERS = {"_primary":"http://127.0.0.1:8088",
                "super_crazy":"http://www.example.com:80/chrome/dom/tests/mochitest/webapps/apps/super_crazy.webapp",
@@ -12,6 +13,8 @@ var SERVERS = {"_primary":"http://127.0.0.1:8088",
                "missing_required_field":"http://sub2.test1.example.org:80/chrome/dom/tests/mochitest/webapps/apps/missing_required_field.webapp",
                "no_delegated_install":"http://sub2.test2.example.org:80/chrome/dom/tests/mochitest/webapps/apps/no_delegated_install.webapp"
  };
+
+popup_listener();
 
 var DEBUG = false;
 
@@ -49,9 +52,6 @@ function uninstallAll(next) {
       var pendingUninstall = app.uninstall();
       pendingUninstall.onsuccess = function(r) {
         finished = (--total === 0);
-        if(finished == true) {
-          next();
-        }
       };
       pendingUninstall.onerror = function () {
         finished = true;
@@ -250,7 +250,6 @@ function install(appURL, check, next) {
   debug("origin = " + origin);
   var installOrigin = getOrigin(window.location.href);
   debug("installOrigin = " + installOrigin);
-  popup_listener(); 
   var url = appURL.substring(appURL.indexOf('/apps/'));
   var manifest = JSON.parse(readFile(url));
   if(!manifest.installs_allowed_from) {
@@ -325,3 +324,4 @@ function check_event_listener_fired (next) {
   triggered = false;
   next();
 }
+

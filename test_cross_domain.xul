@@ -80,10 +80,6 @@ function get_self_returns_nothing(next) {
 
 function get_self_on_domain(next)  {
   debug("in " + arguments.callee.name);
-  if (!event_listener_loaded["super_crazy"]) {
-    if(document.getElementById(name))
-      document.getElementById(name).contentWindow.postMessage("areweReadyYet", '*');
-  }
   onIframeLoad("super_crazy", ok, next);
   document.getElementById("super_crazy").contentWindow.postMessage("getSelf", '*');
 }
@@ -116,11 +112,6 @@ function get_installed_on_domain(next) {
   debug("in " + arguments.callee.name);
   onIframeLoad("super_crazy", ok, next);
   document.getElementById("super_crazy").contentWindow.postMessage("getInstalled", '*');
-}
-
-function tearDown() {
-  debug("in " + arguments.callee.name);
-  uninstallAll();
 }
 
 </script> 
