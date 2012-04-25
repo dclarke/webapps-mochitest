@@ -62,11 +62,13 @@ function triggerMainCommand(popup) {
   notification.button.doCommand();
 }
 
+function mainCommand() {
+  triggerMainCommand(this);
+}
+
 function popup_listener() {
   debug("here in popup listener"); 
-  popupNotifications.panel.addEventListener("popupshown", function() {
-        triggerMainCommand(this);
-  }, false);
+  popupNotifications.panel.addEventListener("popupshown", mainCommand, false);
 }
 
 /**
@@ -109,6 +111,7 @@ function getOrigin(url) {
 function tearDown() {
   debug("in " + arguments.callee.name);
   uninstallAll();
+   popupNotifications.panel.removeEventListener("popupshown", mainCommand, false);
   SpecialPowers.clearUserPref('browser.mozApps.installer.dry_run');
 }
 

@@ -52,6 +52,9 @@ function uninstallAll(next) {
       var pendingUninstall = app.uninstall();
       pendingUninstall.onsuccess = function(r) {
         finished = (--total === 0);
+        if(finished == true) {
+          next();
+        }
       };
       pendingUninstall.onerror = function () {
         finished = true;
@@ -61,9 +64,9 @@ function uninstallAll(next) {
         }
       };
     }
-  if(finished == true) {
-    next();
-  }
+    if(finished == true && total ==  0) {
+      next();
+    }
   }
 }
 
@@ -226,7 +229,8 @@ function runAll(steps) {
   var index = 0;
   SimpleTest.waitForExplicitFinish();
   function callNext() {
-    if (index >= steps.length-1) {
+    if (index >= steps.length - 1) {
+      steps[index]();
       SimpleTest.finish();
       return;
     }
